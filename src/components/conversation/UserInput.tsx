@@ -5,11 +5,11 @@ const UserInput = () => {
       dark:border-white/20 md:border-transparent md:dark:border-transparent 
       md:bg-vert-light-gradient bg-white dark:bg-gray-800 dark:md:bg-vert-dark-gradient pt-2 flex justify-center"
     >
-      <form className="stretch mx-2 flex flex-row gap-3 last:mb-2 md:max-w-5xl w-full">
+      <form className="stretch ml-2 md:mx-4 flex flex-row gap-3 last:mb-2 md:max-w-5xl w-full">
         <label htmlFor="chat" className="sr-only">
           Your message
         </label>
-        <div className="flex items-center px-3 py-2 w-full">
+        <div className="flex items-center md:px-3 py-2 w-full">
           <textarea
             id="chat"
             rows={1}
