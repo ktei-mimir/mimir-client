@@ -1,9 +1,12 @@
-function SidebarLink(props: { text: string }) {
+import { Link } from 'react-router-dom'
+
+function ConversationLink(props: { text: string; conversationId: string }) {
   return (
     <li>
-      <a
-        href="#"
-        className="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
+      <Link
+        to={`/conversation/${props.conversationId}`}
+        className="flex items-center p-2 text-gray-900 rounded-lg 
+        dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -23,9 +26,9 @@ function SidebarLink(props: { text: string }) {
         <span className="flex-1 ml-3 max-h-5 text-ellipsis overflow-hidden break-all">
           {props.text}
         </span>
-      </a>
+      </Link>
     </li>
   )
 }
 
-export default SidebarLink
+export default ConversationLink

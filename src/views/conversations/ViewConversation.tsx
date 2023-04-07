@@ -5,17 +5,20 @@ import { useAuth0 } from '@auth0/auth0-react'
 import { useQuery } from 'react-query'
 import { useParams } from 'react-router-dom'
 
-const ConversationView = () => {
+const ViewConversation = () => {
   const { conversationId } = useParams()
 
   const { getAccessTokenSilently } = useAuth0()
 
   const { data, isLoading, isSuccess, isError } =
-    useQuery<ListMessagesResponse>('messages', async () => {
-      const token = await getAccessTokenSilently()
-      const response = await listMessages(token, conversationId!)
-      return response
-    })
+    useQuery<ListMessagesResponse>(
+      `conversation/${conversationId}/messages`,
+      async () => {
+        const token = await getAccessTokenSilently()
+        const response = await listMessages(token, conversationId ?? '')
+        return response
+      }
+    )
   return (
     <>
       <div className="flex flex-col w-full overflow-auto pb-28">
@@ -42,4 +45,4 @@ const ConversationView = () => {
   )
 }
 
-export default ConversationView
+export default ViewConversation

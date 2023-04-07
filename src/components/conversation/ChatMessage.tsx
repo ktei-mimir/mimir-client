@@ -14,9 +14,12 @@ const ChatMessage = (props: MessageProps) => {
       <div className="flex flex-row">
         <div>{isUser ? <UserIcon /> : <TerminalIcon />}</div>
         <div
-          className={classnames('ml-2 p-2 rounded-md flex-1 bg-gray-100', {
-            'bg-white border border-gray-100': isUser
-          })}
+          className={classnames(
+            'ml-2 p-2 rounded-md flex-1 bg-gray-100 border-gray-100 border',
+            {
+              'bg-white': isUser
+            }
+          )}
         >
           {props.text}
         </div>

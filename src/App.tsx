@@ -1,4 +1,4 @@
-import SidebarLink from '@/components/common/SidebarLink'
+import ConversationLink from '@/components/conversation/ConversationLink'
 import { useAuth0 } from '@auth0/auth0-react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 
@@ -41,7 +41,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 
 //   return null
 // }
-import ConversationView from '@/views/conversations/ConversationView'
+import ViewConversation from '@/views/conversations/ViewConversation'
 import { useQuery } from 'react-query'
 import {
   Conversation,
@@ -115,7 +115,8 @@ function App() {
             {isSuccess ? (
               <ul className="space-y-2 text-sm">
                 {data?.items.map((conversation: Conversation) => (
-                  <SidebarLink
+                  <ConversationLink
+                    conversationId={conversation.id}
                     text={conversation.title}
                     key={conversation.id}
                   />
@@ -132,7 +133,7 @@ function App() {
                 <Route index element={<Navigate to="/conversation" />} />
                 <Route
                   path="/conversation/:conversationId"
-                  element={<ConversationView />}
+                  element={<ViewConversation />}
                 />
               </Routes>
             </main>
