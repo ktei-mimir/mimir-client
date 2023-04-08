@@ -15,13 +15,12 @@ const ViewConversation = () => {
       `conversation/${conversationId}/messages`,
       async () => {
         const token = await getAccessTokenSilently()
-        const response = await listMessages(token, conversationId ?? '')
-        return response
+        return await listMessages(token, conversationId ?? '')
       }
     )
   return (
     <>
-      <div className="flex flex-col w-full overflow-auto pb-28">
+      <div className="flex w-full flex-col overflow-auto pb-28">
         {isError ? (
           <p className="text-red-900">
             There was a problem with fetching quotes

@@ -1,16 +1,9 @@
-import ConversationLink from '@/components/conversation/ConversationLink'
-import { useAuth0 } from '@auth0/auth0-react'
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
-
 // const LoginButton = () => {
 //   const { loginWithRedirect } = useAuth0()
-
 //   return <button onClick={() => loginWithRedirect()}>Log In</button>
 // }
-
 // const LogoutButton = () => {
 //   const { logout } = useAuth0()
-
 //   return (
 //     <button
 //       onClick={() =>
@@ -21,14 +14,11 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 //     </button>
 //   )
 // }
-
 // const Profile = () => {
 //   const { user, isAuthenticated, isLoading } = useAuth0()
-
 //   if (isLoading) {
 //     return <div>Loading ...</div>
 //   }
-
 //   if (isAuthenticated && user) {
 //     return (
 //       <div>
@@ -38,11 +28,16 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 //       </div>
 //     )
 //   }
-
 //   return null
 // }
+import NewConversationLink from '@/components/conversation/NewConversationLink'
+import ViewConversationLink from '@/components/conversation/ViewConversationLink'
+import NewConversation from '@/views/conversations/NewConversation'
 import ViewConversation from '@/views/conversations/ViewConversation'
+import { useAuth0, withAuthenticationRequired } from '@auth0/auth0-react'
 import { useQuery } from 'react-query'
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+
 import {
   Conversation,
   ListConversationsResponse,
@@ -55,8 +50,7 @@ function App() {
   const { data, isLoading, isSuccess, isError } =
     useQuery<ListConversationsResponse>('conversations', async () => {
       const token = await getAccessTokenSilently()
-      const response = await listConversations(token)
-      return response
+      return await listConversations(token)
     })
 
   // useEffect(() => {
@@ -73,39 +67,36 @@ function App() {
   // }, [getAccessTokenSilently])
   return (
     <BrowserRouter>
-      <div className="h-full">
-        <button
-          data-drawer-target="default-sidebar"
-          data-drawer-toggle="default-sidebar"
-          aria-controls="default-sidebar"
-          type="button"
-          className="inline-flex items-center p-2 mt-2 ml-3 text-sm text-gray-500 
-        fixed top-0 left-0 z-40
-        rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 
-        focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600"
+      <button
+        data-drawer-target="default-sidebar"
+        data-drawer-toggle="default-sidebar"
+        aria-controls="default-sidebar"
+        type="button"
+        className="fixed left-0 top-0 z-40 ml-3 mt-2 inline-flex items-center 
+        rounded-lg p-2 text-sm text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600 md:hidden"
+      >
+        <span className="sr-only">Open sidebar</span>
+        <svg
+          className="h-6 w-6"
+          aria-hidden="true"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+          xmlns="http://www.w3.org/2000/svg"
         >
-          <span className="sr-only">Open sidebar</span>
-          <svg
-            className="w-6 h-6"
-            aria-hidden="true"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              clipRule="evenodd"
-              fillRule="evenodd"
-              d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z"
-            ></path>
-          </svg>
-        </button>
-
+          <path
+            clipRule="evenodd"
+            fillRule="evenodd"
+            d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z"
+          ></path>
+        </svg>
+      </button>
+      <div className="h-full">
         <aside
           id="default-sidebar"
-          className="fixed top-0 left-0 z-40 w-64 h-screen transition-transform -translate-x-full md:translate-x-0 overflow-hidden"
+          className="fixed left-0 top-0 z-40 h-screen w-64 -translate-x-full transition-transform md:translate-x-0"
           aria-label="Sidebar"
         >
-          <div className="h-full px-3 py-4 overflow-y-auto bg-gray-50 dark:bg-gray-800">
+          <div className="h-full overflow-y-auto bg-gray-50 px-3 py-4 dark:bg-gray-800">
             {isError ? (
               <p className="text-red-900">
                 There was a problem with fetching conversations
@@ -114,8 +105,9 @@ function App() {
             {isLoading ? <p>Fetching conversations</p> : null}
             {isSuccess ? (
               <ul className="space-y-2 text-sm">
+                <NewConversationLink text="New Conversation" />
                 {data?.items.map((conversation: Conversation) => (
-                  <ConversationLink
+                  <ViewConversationLink
                     conversationId={conversation.id}
                     text={conversation.title}
                     key={conversation.id}
@@ -126,11 +118,12 @@ function App() {
           </div>
         </aside>
 
-        <div className="md:ml-64 h-full overflow-hidden">
-          <div className="relative flex w-full h-full justify-center">
-            <main className="flex md:max-w-5xl w-full relative h-full transition-width flex-col items-stretch">
+        <div className="h-full overflow-hidden md:ml-64">
+          <div className="relative flex h-full w-full justify-center">
+            <main className="transition-width relative flex h-full w-full flex-col items-stretch md:max-w-5xl">
               <Routes>
                 <Route index element={<Navigate to="/conversation" />} />
+                <Route path="/conversation" element={<NewConversation />} />
                 <Route
                   path="/conversation/:conversationId"
                   element={<ViewConversation />}
@@ -144,4 +137,4 @@ function App() {
   )
 }
 
-export default App
+export default withAuthenticationRequired(App)

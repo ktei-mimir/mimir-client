@@ -1,12 +1,12 @@
 import { Link } from 'react-router-dom'
 
-function ConversationLink(props: { text: string; conversationId: string }) {
+function ViewConversationLink(props: { text: string; conversationId: string }) {
   return (
     <li>
       <Link
         to={`/conversation/${props.conversationId}`}
-        className="flex items-center p-2 text-gray-900 rounded-lg 
-        dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
+        className="flex items-center rounded-lg p-2 text-gray-900 
+        hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -14,7 +14,7 @@ function ConversationLink(props: { text: string; conversationId: string }) {
           viewBox="0 -2 24 24"
           strokeWidth={1}
           stroke="currentColor"
-          className="w-5 h-5"
+          className="h-5 w-5"
         >
           <path
             strokeLinecap="round"
@@ -23,7 +23,7 @@ function ConversationLink(props: { text: string; conversationId: string }) {
           />
         </svg>
 
-        <span className="flex-1 ml-3 max-h-5 text-ellipsis overflow-hidden break-all">
+        <span className="ml-3 max-h-5 flex-1 overflow-hidden text-ellipsis break-all">
           {props.text}
         </span>
       </Link>
@@ -31,4 +31,4 @@ function ConversationLink(props: { text: string; conversationId: string }) {
   )
 }
 
-export default ConversationLink
+export default ViewConversationLink
