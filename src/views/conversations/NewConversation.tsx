@@ -16,7 +16,7 @@ const NewConversation = () => {
 
   const navigate = useNavigate()
 
-  const onSubmit = async (message: string) => {
+  const handleMessageSubmit = async (message: string) => {
     await createConversationMutation.mutate(message, {
       onSuccess: response => {
         queryClient.invalidateQueries('conversations')
@@ -36,7 +36,7 @@ const NewConversation = () => {
           </p>
         </div>
       </div>
-      <UserInput onSubmit={onSubmit} />
+      <UserInput onSubmit={handleMessageSubmit} />
     </>
   )
 }

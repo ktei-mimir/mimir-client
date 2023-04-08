@@ -24,6 +24,7 @@ const UserInput = (props: UserInputProps) => {
       return
     }
     props.onSubmit?.(message)
+    setForm({ message: '' })
   }
 
   return (

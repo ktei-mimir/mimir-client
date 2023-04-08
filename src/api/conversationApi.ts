@@ -12,7 +12,6 @@ export type ListConversationsResponse = {
 type CreateConversationResponse = {
   id: string
   title: string
-  totalTokens: number
 }
 
 export const listConversations = (api: AuthenticatedApi) =>
