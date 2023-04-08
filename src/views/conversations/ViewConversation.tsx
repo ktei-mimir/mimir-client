@@ -1,21 +1,20 @@
 import { ListMessagesResponse, Message, listMessages } from '@/api/messageApi'
 import ChatMessage from '@/components/conversation/ChatMessage'
 import UserInput from '@/components/conversation/UserInput'
-import { useAuth0 } from '@auth0/auth0-react'
 import { useQuery } from 'react-query'
 import { useParams } from 'react-router-dom'
+import useAuthenticatedApi from '@/hooks/useAuthenticatedApi'
 
 const ViewConversation = () => {
   const { conversationId } = useParams()
 
-  const { getAccessTokenSilently } = useAuth0()
+  const authenticatedApi = useAuthenticatedApi()
 
   const { data, isLoading, isSuccess, isError } =
     useQuery<ListMessagesResponse>(
-      `conversation/${conversationId}/messages`,
+      `conversations/${conversationId}/messages`,
       async () => {
-        const token = await getAccessTokenSilently()
-        return await listMessages(token, conversationId ?? '')
+        return await listMessages(authenticatedApi, conversationId ?? '')
       }
     )
   return (

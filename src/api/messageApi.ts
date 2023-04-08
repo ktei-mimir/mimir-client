@@ -1,4 +1,4 @@
-import api from '@/api/api'
+import { AuthenticatedApi } from '@/hooks/useAuthenticatedApi'
 
 export type Role = 'user' | 'assistant'
 
@@ -12,11 +12,7 @@ export type ListMessagesResponse = {
   items: Message[]
 }
 
-export const listMessages = (accessToken: string, conversationId: string) =>
+export const listMessages = (api: AuthenticatedApi, conversationId: string) =>
   api
-    .get<ListMessagesResponse>(`v1/conversations/${conversationId}/messages`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`
-      }
-    })
+    .get<ListMessagesResponse>(`v1/conversations/${conversationId}/messages`)
     .then(res => res.data)

@@ -9,18 +9,23 @@ const axiosParams = {
 // Create axios instance with default params
 const axiosInstance = axios.create(axiosParams)
 // Main api function
+
+export type ApiRequest = {
+  url: string
+  body?: unknown
+  config?: AxiosRequestConfig
+}
+
 const api = (axios: AxiosInstance) => {
   return {
-    get: <T>(url: string, config: AxiosRequestConfig = {}) =>
-      axios.get<T>(url, config),
-    delete: <T>(url: string, config: AxiosRequestConfig = {}) =>
-      axios.delete<T>(url, config),
-    post: <T>(url: string, body: unknown, config: AxiosRequestConfig = {}) =>
-      axios.post<T>(url, body, config),
-    patch: <T>(url: string, body: unknown, config: AxiosRequestConfig = {}) =>
-      axios.patch<T>(url, body, config),
-    put: <T>(url: string, body: unknown, config: AxiosRequestConfig = {}) =>
-      axios.put<T>(url, body, config)
+    get: <T>(request: ApiRequest) =>
+      axios.get<T>(request.url, request.config ?? {}),
+    delete: <T>(request: ApiRequest) =>
+      axios.delete<T>(request.url, request.config ?? {}),
+    post: <T>(request: ApiRequest) =>
+      axios.post<T>(request.url, request.body, request.config ?? {}),
+    put: <T>(request: ApiRequest) =>
+      axios.put<T>(request.url, request.body, request.config ?? {})
   }
 }
 export default api(axiosInstance)
