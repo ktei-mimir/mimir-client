@@ -11,6 +11,8 @@ import { useMutation, useQuery, useQueryClient } from 'react-query'
 import { useParams } from 'react-router-dom'
 import useAuthenticatedApi from '@/hooks/useAuthenticatedApi'
 import dateUtils from '@/helpers/dateUtils'
+import usePendingMessage from '@/components/conversation/conversationStore'
+import { memo, useEffect, useRef } from 'react'
 
 const ViewConversation = () => {
   const { conversationId } = useParams()
@@ -42,7 +44,7 @@ const ViewConversation = () => {
                 {
                   content: request.content,
                   role: 'user',
-                  createdAt: dateUtils.getCurrentUnixTimestamp()
+                  createdAt: dateUtils.getUtcNowTicks()
                 }
               ]
             }
@@ -72,6 +74,32 @@ const ViewConversation = () => {
     })
   }
 
+  const { pendingMessage, clearPendingMessage } = usePendingMessage()
+  const currentPendingMessage = useRef(pendingMessage)
+
+  useEffect(() => {
+    const messageToCreate = currentPendingMessage.current
+    currentPendingMessage.current = ''
+    async function sendPendingMessage() {
+      if (!conversationId) return
+      if (messageToCreate.trim().length > 0) {
+        console.log('sendPendingMessage', messageToCreate)
+        clearPendingMessage()
+        await createMessageMutation.mutate({
+          conversationId: conversationId,
+          content: messageToCreate
+        })
+      }
+    }
+
+    sendPendingMessage().then()
+  }, [
+    clearPendingMessage,
+    conversationId,
+    createMessageMutation,
+    pendingMessage
+  ])
+
   return (
     <>
       <div className="flex w-full flex-col overflow-auto pb-28">
@@ -98,4 +126,4 @@ const ViewConversation = () => {
   )
 }
 
-export default ViewConversation
+export default memo(ViewConversation)

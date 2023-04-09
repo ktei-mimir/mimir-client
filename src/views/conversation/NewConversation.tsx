@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from 'react-query'
 import { createConversation } from '@/api/conversationApi'
 import useAuthenticatedApi from '@/hooks/useAuthenticatedApi'
 import { useNavigate } from 'react-router-dom'
+import usePendingMessage from '@/components/conversation/conversationStore'
 
 const NewConversation = () => {
   const queryClient = useQueryClient()
@@ -16,10 +17,13 @@ const NewConversation = () => {
 
   const navigate = useNavigate()
 
+  const { setPendingMessage } = usePendingMessage()
+
   const handleMessageSubmit = async (message: string) => {
     await createConversationMutation.mutate(message, {
       onSuccess: response => {
         queryClient.invalidateQueries('conversations')
+        setPendingMessage(message)
         navigate(`/conversation/${response.data.id}`)
       }
     })

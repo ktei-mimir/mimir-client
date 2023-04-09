@@ -32,8 +32,8 @@
 // }
 import NewConversationLink from '@/components/conversation/NewConversationLink'
 import ViewConversationLink from '@/components/conversation/ViewConversationLink'
-import NewConversation from '@/views/conversations/NewConversation'
-import ViewConversation from '@/views/conversations/ViewConversation'
+import NewConversation from '@/views/conversation/NewConversation'
+import ViewConversation from '@/views/conversation/ViewConversation'
 import { withAuthenticationRequired } from '@auth0/auth0-react'
 import { useQuery } from 'react-query'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
