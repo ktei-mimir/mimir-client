@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from 'react-query'
 
 import App from './App'
 import './index.css'
+import Secured from '@/components/common/Secured'
 
 const queryClient = new QueryClient()
 
@@ -20,7 +21,9 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
       }}
     >
       <QueryClientProvider client={queryClient}>
-        <App />
+        <Secured>
+          <App />
+        </Secured>
       </QueryClientProvider>
     </Auth0Provider>
   </React.StrictMode>

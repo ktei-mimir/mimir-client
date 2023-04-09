@@ -34,7 +34,6 @@ import NewConversationLink from '@/components/conversation/NewConversationLink'
 import ViewConversationLink from '@/components/conversation/ViewConversationLink'
 import NewConversation from '@/views/conversation/NewConversation'
 import ViewConversation from '@/views/conversation/ViewConversation'
-import { withAuthenticationRequired } from '@auth0/auth0-react'
 import { useQuery } from 'react-query'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 
@@ -93,12 +92,12 @@ function App() {
       <div className="h-full">
         <div
           id="navigation-menu"
-          className="hs-overlay scrollbar-y dark:scrollbar-y fixed bottom-0 left-0 top-0 z-[60] hidden w-64
-          -translate-x-full transform overflow-y-auto border-r border-gray-200 bg-white pb-10
-          transition-all duration-300 hs-overlay-open:translate-x-0 dark:border-gray-700
-          dark:bg-gray-800 lg:bottom-0 lg:right-auto lg:block lg:translate-x-0"
+          className="hs-overlay scrollbar-y fixed bottom-0 left-0 top-0 z-[60] hidden w-64
+          -translate-x-full transform overflow-y-auto border-r border-gray-200 bg-white
+          transition-all duration-300 hs-overlay-open:translate-x-0
+          lg:bottom-0 lg:right-auto lg:block lg:translate-x-0"
         >
-          <div className="h-full overflow-y-auto bg-gray-50 px-3 py-4 dark:bg-gray-800">
+          <div className="h-full overflow-y-auto bg-gray-50 px-3 py-4">
             {isError ? (
               <p className="text-red-900">
                 There was a problem with fetching conversations
@@ -139,4 +138,4 @@ function App() {
   )
 }
 
-export default withAuthenticationRequired(App)
+export default App

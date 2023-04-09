@@ -13,6 +13,7 @@ export type ListMessagesResponse = {
 }
 
 export type CreateMessageRequest = {
+  connectionId: string
   conversationId: string
   content: string
 }

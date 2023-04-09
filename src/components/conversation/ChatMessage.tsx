@@ -1,6 +1,7 @@
 import { Role } from '@/api/messageApi'
 import { TerminalIcon, UserIcon } from '@/components/common/icons'
 import classnames from 'classnames'
+import { memo } from 'react'
 
 type MessageProps = {
   text: string
@@ -28,4 +29,4 @@ const ChatMessage = (props: MessageProps) => {
   )
 }
 
-export default ChatMessage
+export default memo(ChatMessage)

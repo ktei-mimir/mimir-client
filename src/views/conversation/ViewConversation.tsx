@@ -12,7 +12,15 @@ import { useParams } from 'react-router-dom'
 import useAuthenticatedApi from '@/hooks/useAuthenticatedApi'
 import dateUtils from '@/helpers/dateUtils'
 import usePendingMessage from '@/components/conversation/conversationStore'
-import { memo, useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
+import * as signalR from '@microsoft/signalr'
+import { useAuth0 } from '@auth0/auth0-react'
+
+type HubMessage = {
+  conversationId: string
+  role: string
+  content: string
+}
 
 const ViewConversation = () => {
   const { conversationId } = useParams()
@@ -64,11 +72,17 @@ const ViewConversation = () => {
     }
   )
 
+  const hubConnection = useRef<signalR.HubConnection | undefined>()
+
   const handleMessageSubmit = async (message: string) => {
     if (!conversationId) {
       return
     }
+    if (!hubConnection.current || !hubConnection.current.connectionId) {
+      return
+    }
     await createMessageMutation.mutate({
+      connectionId: hubConnection.current.connectionId,
       conversationId: conversationId,
       content: message
     })
@@ -77,27 +91,72 @@ const ViewConversation = () => {
   const { pendingMessage, clearPendingMessage } = usePendingMessage()
   const currentPendingMessage = useRef(pendingMessage)
 
+  // useEffect(() => {
+  //   const messageToCreate = currentPendingMessage.current
+  //   currentPendingMessage.current = ''
+  //   async function sendPendingMessage() {
+  //     if (!conversationId) return
+  //     if (messageToCreate.trim().length > 0) {
+  //       clearPendingMessage()
+  //       await createMessageMutation.mutate({
+  //         connectionId:
+  //         conversationId: conversationId,
+  //         content: messageToCreate
+  //       })
+  //     }
+  //   }
+  //
+  //   sendPendingMessage().then()
+  // }, [
+  //   clearPendingMessage,
+  //   conversationId,
+  //   createMessageMutation,
+  //   pendingMessage
+  // ])
+
+  const { getAccessTokenSilently } = useAuth0()
+
   useEffect(() => {
     const messageToCreate = currentPendingMessage.current
     currentPendingMessage.current = ''
-    async function sendPendingMessage() {
+    async function sendPendingMessage(connectionId: string) {
       if (!conversationId) return
       if (messageToCreate.trim().length > 0) {
-        console.log('sendPendingMessage', messageToCreate)
         clearPendingMessage()
         await createMessageMutation.mutate({
+          connectionId,
           conversationId: conversationId,
           content: messageToCreate
         })
       }
     }
 
-    sendPendingMessage().then()
+    if (!hubConnection.current) {
+      console.log('connecting...')
+      const connection = new signalR.HubConnectionBuilder()
+        .withUrl('http://localhost:5000/hubs/conversation', {
+          accessTokenFactory(): string | Promise<string> {
+            return getAccessTokenSilently()
+          }
+        })
+        .build()
+      connection.on('ReceiveMessage', (m: HubMessage) => {
+        if (m.conversationId !== conversationId) return
+        console.log(m.content)
+      })
+      hubConnection.current = connection
+      connection.start().then(() => {
+        console.log('Connected: ', connection.connectionId)
+        if (connection.connectionId) {
+          sendPendingMessage(connection.connectionId).then()
+        }
+      })
+    }
   }, [
     clearPendingMessage,
     conversationId,
     createMessageMutation,
-    pendingMessage
+    getAccessTokenSilently
   ])
 
   return (
@@ -126,4 +185,4 @@ const ViewConversation = () => {
   )
 }
 
-export default memo(ViewConversation)
+export default ViewConversation
