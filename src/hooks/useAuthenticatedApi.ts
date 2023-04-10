@@ -1,6 +1,6 @@
+import api, { ApiRequest } from '@/api/api'
 import { useAuth0 } from '@auth0/auth0-react'
 import { AxiosRequestConfig, AxiosResponse } from 'axios'
-import api, { ApiRequest } from '@/api/api'
 
 type AxiosRequestConfigurator = (cfg: AxiosRequestConfig) => void
 

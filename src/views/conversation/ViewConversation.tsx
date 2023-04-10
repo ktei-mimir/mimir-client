@@ -1,27 +1,27 @@
 import {
+  CreateMessageRequest,
   ListMessagesResponse,
   Message,
-  CreateMessageRequest,
   createMessage
 } from '@/api/messageApi'
 import ChatMessage from '@/components/conversation/ChatMessage'
 import UserInput from '@/components/conversation/UserInput'
+import usePendingMessage from '@/components/conversation/conversationStore'
+import dateUtils from '@/helpers/dateUtils'
+import { buildConnection } from '@/helpers/signalRConnectionFactory'
+import { randomUUID } from '@/helpers/stringUtils'
+import useAuthenticatedApi from '@/hooks/useAuthenticatedApi'
+import useMessages from '@/views/conversation/useMessages'
+import { useAuth0 } from '@auth0/auth0-react'
+import * as signalR from '@microsoft/signalr'
+import produce from 'immer'
+import { useEffect, useRef } from 'react'
 import { useMutation, useQueryClient } from 'react-query'
 import { useParams } from 'react-router-dom'
-import useAuthenticatedApi from '@/hooks/useAuthenticatedApi'
-import dateUtils from '@/helpers/dateUtils'
-import usePendingMessage from '@/components/conversation/conversationStore'
-import { useEffect, useRef } from 'react'
-import * as signalR from '@microsoft/signalr'
-import { useAuth0 } from '@auth0/auth0-react'
-import useMessages from '@/views/conversation/useMessages'
-import { v4 as uuidv4 } from 'uuid'
-import produce from 'immer'
 
-type HubMessage = {
+type StreamMessageRequest = {
   streamId: string
   conversationId: string
-  role: string
   content: string
 }
 
@@ -112,7 +112,7 @@ const ViewConversation = () => {
       return
     }
     await createMessageMutation.mutate({
-      streamId: uuidv4(),
+      streamId: randomUUID(),
       conversationId: conversationId,
       content: message
     })
@@ -120,29 +120,6 @@ const ViewConversation = () => {
 
   const { pendingMessage, clearPendingMessage } = usePendingMessage()
   const currentPendingMessage = useRef(pendingMessage)
-
-  // useEffect(() => {
-  //   const messageToCreate = currentPendingMessage.current
-  //   currentPendingMessage.current = ''
-  //   async function sendPendingMessage() {
-  //     if (!conversationId) return
-  //     if (messageToCreate.trim().length > 0) {
-  //       clearPendingMessage()
-  //       await createMessageMutation.mutate({
-  //         connectionId:
-  //         conversationId: conversationId,
-  //         content: messageToCreate
-  //       })
-  //     }
-  //   }
-  //
-  //   sendPendingMessage().then()
-  // }, [
-  //   clearPendingMessage,
-  //   conversationId,
-  //   createMessageMutation,
-  //   pendingMessage
-  // ])
 
   const { getAccessTokenSilently } = useAuth0()
 
@@ -154,7 +131,7 @@ const ViewConversation = () => {
       if (messageToCreate.trim().length > 0) {
         clearPendingMessage()
         await createMessageMutation.mutate({
-          streamId: uuidv4(),
+          streamId: randomUUID(),
           conversationId: conversationId,
           content: messageToCreate
         })
@@ -162,15 +139,8 @@ const ViewConversation = () => {
     }
 
     if (!hubConnection.current) {
-      console.log('connecting...')
-      const connection = new signalR.HubConnectionBuilder()
-        .withUrl('http://localhost:5000/hubs/conversation', {
-          accessTokenFactory(): string | Promise<string> {
-            return getAccessTokenSilently()
-          }
-        })
-        .build()
-      connection.on('ReceiveMessage', (m: HubMessage) => {
+      const connection = buildConnection(getAccessTokenSilently)
+      connection.on('StreamMessage', (m: StreamMessageRequest) => {
         if (m.conversationId !== conversationId) return
         let currentConversation =
           queryClient.getQueryData<ListMessagesResponse>(queryKey)
@@ -184,7 +154,6 @@ const ViewConversation = () => {
       })
       hubConnection.current = connection
       connection.start().then(() => {
-        console.log('Connected: ', connection.connectionId)
         if (connection.connectionId) {
           sendPendingMessage().then()
         }

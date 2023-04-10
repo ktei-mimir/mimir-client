@@ -6,7 +6,7 @@ function ViewConversationLink(props: { text: string; conversationId: string }) {
       <Link
         to={`/conversation/${props.conversationId}`}
         className="flex items-center rounded-lg p-2 text-gray-900 
-        hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
+        hover:bg-gray-100"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -23,9 +23,7 @@ function ViewConversationLink(props: { text: string; conversationId: string }) {
           />
         </svg>
 
-        <span className="ml-3 max-h-5 flex-1 overflow-hidden text-ellipsis break-all">
-          {props.text}
-        </span>
+        <span className="ml-3 flex-1 text-ellipsis">{props.text}</span>
       </Link>
     </li>
   )

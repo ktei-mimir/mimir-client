@@ -32,6 +32,7 @@
 // }
 import NewConversationLink from '@/components/conversation/NewConversationLink'
 import ViewConversationLink from '@/components/conversation/ViewConversationLink'
+import useAuthenticatedApi from '@/hooks/useAuthenticatedApi'
 import NewConversation from '@/views/conversation/NewConversation'
 import ViewConversation from '@/views/conversation/ViewConversation'
 import { useQuery } from 'react-query'
@@ -42,7 +43,6 @@ import {
   ListConversationsResponse,
   listConversations
 } from './api/conversationApi'
-import useAuthenticatedApi from '@/hooks/useAuthenticatedApi'
 
 function App() {
   const authenticatedApi = useAuthenticatedApi()
