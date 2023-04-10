@@ -3,6 +3,7 @@ import { AuthenticatedApi } from '@/hooks/useAuthenticatedApi'
 export type Role = 'user' | 'assistant'
 
 export type Message = {
+  streamId?: string
   role: Role
   content: string
   createdAt: number
@@ -13,7 +14,7 @@ export type ListMessagesResponse = {
 }
 
 export type CreateMessageRequest = {
-  connectionId: string
+  streamId: string
   conversationId: string
   content: string
 }

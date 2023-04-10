@@ -1,13 +1,12 @@
 import {
   ListMessagesResponse,
   Message,
-  listMessages,
   CreateMessageRequest,
   createMessage
 } from '@/api/messageApi'
 import ChatMessage from '@/components/conversation/ChatMessage'
 import UserInput from '@/components/conversation/UserInput'
-import { useMutation, useQuery, useQueryClient } from 'react-query'
+import { useMutation, useQueryClient } from 'react-query'
 import { useParams } from 'react-router-dom'
 import useAuthenticatedApi from '@/hooks/useAuthenticatedApi'
 import dateUtils from '@/helpers/dateUtils'
@@ -15,23 +14,49 @@ import usePendingMessage from '@/components/conversation/conversationStore'
 import { useEffect, useRef } from 'react'
 import * as signalR from '@microsoft/signalr'
 import { useAuth0 } from '@auth0/auth0-react'
+import useMessages from '@/views/conversation/useMessages'
+import { v4 as uuidv4 } from 'uuid'
+import produce from 'immer'
 
 type HubMessage = {
+  streamId: string
   conversationId: string
   role: string
   content: string
 }
 
+const appendMessages = (
+  conversation: ListMessagesResponse,
+  ...messages: Message[]
+) =>
+  produce(conversation, draft => {
+    messages.forEach(m => draft.items.push(m))
+  })
+
+const streamMessage = (
+  conversation: ListMessagesResponse,
+  streamId: string,
+  content: string
+) =>
+  produce(conversation, draft => {
+    const messageToStream = draft.items.find(m => m.streamId === streamId)
+    if (!messageToStream) {
+      return
+    }
+    messageToStream.content = content
+  })
+
 const ViewConversation = () => {
   const { conversationId } = useParams()
+  if (!conversationId) throw new Error('conversationId cannot be empty')
+
   const queryClient = useQueryClient()
 
   const authenticatedApi = useAuthenticatedApi()
-  const queryKey = `conversations/${conversationId}/messages`
-  const { data, isLoading, isSuccess, isError } =
-    useQuery<ListMessagesResponse>(queryKey, async () => {
-      return await listMessages(authenticatedApi, conversationId ?? '')
-    })
+  const {
+    queryKey,
+    query: { data, isLoading, isSuccess, isError }
+  } = useMessages(conversationId)
 
   const createMessageMutation = useMutation(
     'createMessage',
@@ -40,30 +65,35 @@ const ViewConversation = () => {
       onMutate: async (request: CreateMessageRequest) => {
         await queryClient.cancelQueries(queryKey)
 
-        const previousData =
+        const currentData =
           queryClient.getQueryData<ListMessagesResponse>(queryKey)
 
-        if (previousData) {
+        if (currentData) {
           queryClient.setQueryData<ListMessagesResponse>(queryKey, oldData => {
-            return {
-              ...oldData,
-              items: [
-                ...(oldData?.items ?? []),
-                {
-                  content: request.content,
-                  role: 'user',
-                  createdAt: dateUtils.getUtcNowTicks()
-                }
-              ]
+            const userMessage: Message = {
+              content: request.content,
+              role: 'user',
+              createdAt: dateUtils.getUtcNowTicks()
             }
+            const assistantMessage: Message = {
+              streamId: request.streamId,
+              content: '',
+              role: 'assistant',
+              createdAt: dateUtils.getUtcNowTicks() + 1
+            }
+            return appendMessages(
+              oldData ?? { items: [] },
+              userMessage,
+              assistantMessage
+            )
           })
         }
 
-        return previousData
+        return currentData
       },
       onError: (err, variables, context?: ListMessagesResponse) => {
-        if (context?.items) {
-          queryClient.setQueryData(queryKey, context.items)
+        if (context) {
+          queryClient.setQueryData(queryKey, context)
         }
       },
       onSettled: async () => {
@@ -82,7 +112,7 @@ const ViewConversation = () => {
       return
     }
     await createMessageMutation.mutate({
-      connectionId: hubConnection.current.connectionId,
+      streamId: uuidv4(),
       conversationId: conversationId,
       content: message
     })
@@ -119,12 +149,12 @@ const ViewConversation = () => {
   useEffect(() => {
     const messageToCreate = currentPendingMessage.current
     currentPendingMessage.current = ''
-    async function sendPendingMessage(connectionId: string) {
+    async function sendPendingMessage() {
       if (!conversationId) return
       if (messageToCreate.trim().length > 0) {
         clearPendingMessage()
         await createMessageMutation.mutate({
-          connectionId,
+          streamId: uuidv4(),
           conversationId: conversationId,
           content: messageToCreate
         })
@@ -142,13 +172,21 @@ const ViewConversation = () => {
         .build()
       connection.on('ReceiveMessage', (m: HubMessage) => {
         if (m.conversationId !== conversationId) return
-        console.log(m.content)
+        let currentConversation =
+          queryClient.getQueryData<ListMessagesResponse>(queryKey)
+        if (!currentConversation) return
+        currentConversation = streamMessage(
+          currentConversation,
+          m.streamId,
+          m.content
+        )
+        queryClient.setQueryData(queryKey, currentConversation)
       })
       hubConnection.current = connection
       connection.start().then(() => {
         console.log('Connected: ', connection.connectionId)
         if (connection.connectionId) {
-          sendPendingMessage(connection.connectionId).then()
+          sendPendingMessage().then()
         }
       })
     }
@@ -156,7 +194,9 @@ const ViewConversation = () => {
     clearPendingMessage,
     conversationId,
     createMessageMutation,
-    getAccessTokenSilently
+    getAccessTokenSilently,
+    queryClient,
+    queryKey
   ])
 
   return (
