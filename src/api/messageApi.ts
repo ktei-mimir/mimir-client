@@ -5,7 +5,7 @@ export type Role = 'user' | 'assistant'
 export type Message = {
   streamId?: string
   role: Role
-  content: string
+  content?: string
   createdAt: number
 }
 

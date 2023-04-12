@@ -2,9 +2,10 @@ import { Role } from '@/api/messageApi'
 import { TerminalIcon, UserIcon } from '@/components/common/icons'
 import classnames from 'classnames'
 import { memo } from 'react'
+import Spinner from '@/components/common/Spinner'
 
 type MessageProps = {
-  text: string
+  text?: string
   role: Role
 }
 
@@ -22,7 +23,7 @@ const ChatMessage = (props: MessageProps) => {
             }
           )}
         >
-          {props.text}
+          {props.text ? props.text : <Spinner />}
         </div>
       </div>
     </div>

@@ -1,3 +1,4 @@
+import { DEVELOPMENT_BASE_URL } from '@/constants'
 import * as signalR from '@microsoft/signalr'
 
 export const buildConnection = (
@@ -5,7 +6,7 @@ export const buildConnection = (
 ) => {
   const baseURL =
     process.env.NODE_ENV === 'development'
-      ? 'http://localhost:5000'
+      ? DEVELOPMENT_BASE_URL
       : process.env.SIGNALR_BASE_URL
   return new signalR.HubConnectionBuilder()
     .withUrl(`${baseURL}/hubs/conversation`, {

@@ -33,21 +33,23 @@ const useAuthenticatedApi = () => {
     return await apiFunction({ url, body, config: requestConfig })
   }
 
+  const { get, delete: del, post, put } = api
+
   return {
     get: async <T>(url: string, config?: AxiosRequestConfigurator) =>
-      makeApiRequest<T>(api.get, url, undefined, config),
+      makeApiRequest<T>(get, url, undefined, config),
     delete: async <T>(url: string, config?: AxiosRequestConfigurator) =>
-      makeApiRequest<T>(api.delete, url, undefined, config),
+      makeApiRequest<T>(del, url, undefined, config),
     post: async <T>(
       url: string,
       body: unknown,
       config?: AxiosRequestConfigurator
-    ) => makeApiRequest<T>(api.post, url, body, config),
+    ) => makeApiRequest<T>(post, url, body, config),
     put: async <T>(
       url: string,
       body: unknown,
       config?: AxiosRequestConfigurator
-    ) => makeApiRequest<T>(api.put, url, body, config)
+    ) => makeApiRequest<T>(put, url, body, config)
   }
 }
 

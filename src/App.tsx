@@ -43,6 +43,7 @@ import {
   ListConversationsResponse,
   listConversations
 } from './api/conversationApi'
+import GlobalAlertContextProvider from '@/context/GlobalAlertContext'
 
 function App() {
   const authenticatedApi = useAuthenticatedApi()
@@ -122,14 +123,16 @@ function App() {
         <div className="h-full overflow-hidden md:ml-64">
           <div className="relative flex h-full w-full justify-center">
             <main className="transition-width relative flex h-full w-full flex-col items-stretch md:max-w-5xl">
-              <Routes>
-                <Route index element={<Navigate to="/conversation" />} />
-                <Route path="/conversation" element={<NewConversation />} />
-                <Route
-                  path="/conversation/:conversationId"
-                  element={<ViewConversation />}
-                />
-              </Routes>
+              <GlobalAlertContextProvider>
+                <Routes>
+                  <Route index element={<Navigate to="/conversation" />} />
+                  <Route path="/conversation" element={<NewConversation />} />
+                  <Route
+                    path="/conversation/:conversationId"
+                    element={<ViewConversation />}
+                  />
+                </Routes>
+              </GlobalAlertContextProvider>
             </main>
           </div>
         </div>

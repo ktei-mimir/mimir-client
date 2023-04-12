@@ -5,6 +5,9 @@ import { createConversation } from '@/api/conversationApi'
 import useAuthenticatedApi from '@/hooks/useAuthenticatedApi'
 import { useNavigate } from 'react-router-dom'
 import usePendingMessage from '@/components/conversation/conversationStore'
+import { useGlobalAlertActionsContext } from '@/context/GlobalAlertContext'
+import { handleApiError } from '@/helpers/apiErrorHandler'
+import { useState } from 'react'
 
 const NewConversation = () => {
   const queryClient = useQueryClient()
@@ -18,13 +21,23 @@ const NewConversation = () => {
   const navigate = useNavigate()
 
   const { setPendingMessage } = usePendingMessage()
+  const { setError } = useGlobalAlertActionsContext()
+  const [isSendingMessage, setIsSendingMessage] = useState(false)
 
   const handleMessageSubmit = async (message: string) => {
+    setIsSendingMessage(true)
+    setError(undefined)
     await createConversationMutation.mutate(message, {
+      onError: error => {
+        handleApiError(error, setError)
+      },
       onSuccess: response => {
         queryClient.invalidateQueries('conversations')
         setPendingMessage(message)
         navigate(`/conversation/${response.data.id}`)
+      },
+      onSettled: () => {
+        setIsSendingMessage(false)
       }
     })
   }
@@ -40,7 +53,7 @@ const NewConversation = () => {
           </p>
         </div>
       </div>
-      <UserInput onSubmit={handleMessageSubmit} />
+      <UserInput onSubmit={handleMessageSubmit} isBusy={isSendingMessage} />
     </>
   )
 }
