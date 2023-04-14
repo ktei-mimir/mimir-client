@@ -12,7 +12,7 @@ type MessageProps = {
 const ChatMessage = (props: MessageProps) => {
   const isUser = props.role === 'user'
   return (
-    <div className="md:w-3xl mx-auto max-w-3xl flex-1 pt-2">
+    <div className="md:w-3xl mx-auto max-w-3xl flex-1 pt-4 text-gray-700">
       <div className="flex flex-row">
         <div>{isUser ? <UserIcon /> : <TerminalIcon />}</div>
         <div

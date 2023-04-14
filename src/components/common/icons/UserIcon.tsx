@@ -7,7 +7,7 @@ const UserIcon = (props: React.SVGProps<SVGSVGElement>) => (
     viewBox="0 0 24 24"
     strokeWidth={1.5}
     stroke="currentColor"
-    className="h-6 w-6 text-indigo-700"
+    className="h-7 w-7 text-indigo-400"
     {...props}
   >
     <path
