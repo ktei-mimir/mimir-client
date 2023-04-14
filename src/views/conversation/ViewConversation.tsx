@@ -261,7 +261,7 @@ function renderMessages(data: ListMessagesResponse | undefined) {
     )
   return (
     <ul className="space-y-2 text-sm">
-      {data?.items.map((message: Message) => (
+      {(data?.items ?? []).map((message: Message) => (
         <ChatMessage
           key={`${message.role}:${message.createdAt}`}
           text={message.content}

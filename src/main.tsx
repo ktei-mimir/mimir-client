@@ -3,6 +3,7 @@ import { Auth0Provider } from '@auth0/auth0-react'
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from 'react-query'
+import 'preline'
 
 import App from './App'
 import './index.css'
