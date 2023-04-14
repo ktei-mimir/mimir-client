@@ -8,6 +8,8 @@ import usePendingMessage from '@/components/conversation/conversationStore'
 import { useGlobalAlertActionsContext } from '@/context/GlobalAlertContext'
 import { handleApiError } from '@/helpers/apiErrorHandler'
 import Logo from '@/components/common/Logo'
+import useAppState from '@/store/appStateStore'
+import { useEffect } from 'react'
 
 const NewConversation = () => {
   const queryClient = useQueryClient()
@@ -23,6 +25,8 @@ const NewConversation = () => {
   const { setPendingMessage } = usePendingMessage()
   const { setError } = useGlobalAlertActionsContext()
 
+  const { setSelectedConversationId } = useAppState()
+
   const handleMessageSubmit = async (message: string) => {
     setError(undefined)
     await createConversationMutation.mutate(message, {
@@ -36,6 +40,10 @@ const NewConversation = () => {
       }
     })
   }
+
+  useEffect(() => {
+    setSelectedConversationId(undefined)
+  }, [setSelectedConversationId])
 
   return (
     <>

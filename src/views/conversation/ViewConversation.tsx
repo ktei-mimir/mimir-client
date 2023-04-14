@@ -26,6 +26,7 @@ import { Link, useParams } from 'react-router-dom'
 import { useGlobalAlertActionsContext } from '@/context/GlobalAlertContext'
 import Spinner from '@/components/common/Spinner'
 import { handleApiError } from '@/helpers/apiErrorHandler'
+import useAppState from '@/store/appStateStore'
 
 type StreamMessageRequest = {
   streamId: string
@@ -172,7 +173,10 @@ const ViewConversation = () => {
     [conversationId, queryClient, queryKey]
   )
 
+  const { setSelectedConversationId } = useAppState()
+
   useEffect(() => {
+    setSelectedConversationId(conversationId)
     const messageToCreate = currentPendingMessage.current
     currentPendingMessage.current = ''
     async function sendPendingMessage() {
@@ -215,7 +219,8 @@ const ViewConversation = () => {
     getAccessTokenSilently,
     handleStreamMessage,
     queryClient,
-    queryKey
+    queryKey,
+    setSelectedConversationId
   ])
 
   return (

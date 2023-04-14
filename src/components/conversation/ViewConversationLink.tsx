@@ -1,13 +1,24 @@
-import { Link } from 'react-router-dom'
+import { NavLink } from 'react-router-dom'
+import classnames from 'classnames'
+import { memo } from 'react'
+import useAppState from '@/store/appStateStore'
 
 function ViewConversationLink(props: { text: string; conversationId: string }) {
+  // const conversationId = window.location.href.split('/').pop()
+  const { selectedConversationId } = useAppState()
   return (
     <li>
-      <Link
+      <NavLink
         to={`/conversation/${props.conversationId}`}
-        className="flex items-center rounded-lg p-2
-        text-white
-        hover:bg-indigo-400"
+        className={isActive =>
+          classnames(
+            'flex items-center rounded-lg p-2 text-white hover:bg-indigo-400',
+            {
+              'bg-indigo-400':
+                isActive && selectedConversationId === props.conversationId
+            }
+          )
+        }
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -25,9 +36,9 @@ function ViewConversationLink(props: { text: string; conversationId: string }) {
         </svg>
 
         <span className="ml-3 flex-1 text-ellipsis">{props.text}</span>
-      </Link>
+      </NavLink>
     </li>
   )
 }
 
-export default ViewConversationLink
+export default memo(ViewConversationLink)
