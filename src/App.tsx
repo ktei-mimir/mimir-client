@@ -36,7 +36,7 @@ import useAuthenticatedApi from '@/hooks/useAuthenticatedApi'
 import NewConversation from '@/views/conversation/NewConversation'
 import ViewConversation from '@/views/conversation/ViewConversation'
 import { useQuery } from 'react-query'
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { HashRouter as Router, Navigate, Route, Routes } from 'react-router-dom'
 
 import {
   Conversation,
@@ -66,7 +66,7 @@ function App() {
   //   getToken()
   // }, [getAccessTokenSilently])
   return (
-    <BrowserRouter>
+    <Router>
       <button
         type="button"
         className="fixed left-0 top-0 z-[60] text-gray-500 hover:text-gray-600"
@@ -139,7 +139,7 @@ function App() {
           </div>
         </div>
       </div>
-    </BrowserRouter>
+    </Router>
   )
 }
 

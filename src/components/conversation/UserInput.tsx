@@ -37,6 +37,7 @@ const UserInput = (props: UserInputProps) => {
   }
 
   const submit = () => {
+    if (props.isBusy) return
     const { message } = form
     if (!message) {
       return
@@ -66,7 +67,6 @@ const UserInput = (props: UserInputProps) => {
             style={{ minHeight: '2.625rem' }}
             onChange={onChange}
             onKeyDown={handleKeyDown}
-            disabled={props.isBusy}
             value={form.message}
             className="mx-4 block w-full resize-none rounded-lg border border-gray-300 bg-white p-2.5
               text-base text-gray-900
