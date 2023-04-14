@@ -47,9 +47,9 @@ const UserInput = (props: UserInputProps) => {
 
   return (
     <div
-      className="md:bg-vert-light-gradient dark:md:bg-vert-dark-gradient absolute bottom-0 left-0 flex 
-      w-full justify-center border-t 
-      bg-white pt-2 dark:border-white/20 dark:bg-gray-800 md:border-t-0 md:border-transparent md:dark:border-transparent"
+      className="md:bg-vert-light-gradient absolute bottom-0 left-0 flex
+      w-full justify-center border-t
+      bg-white pt-2 md:border-t-0 md:border-transparent"
     >
       <form
         className="stretch ml-2 flex w-full flex-row gap-3 last:mb-2 md:mx-4 md:max-w-5xl"
@@ -68,10 +68,11 @@ const UserInput = (props: UserInputProps) => {
             onKeyDown={handleKeyDown}
             disabled={props.isBusy}
             value={form.message}
-            className="mx-4 block w-full resize-none rounded-lg border border-gray-300 border-gray-600 bg-white
-              p-2.5 text-sm
-              text-gray-900 placeholder-gray-400
-              focus:border-blue-500 focus:ring-blue-500 md:max-h-36 md:resize-y"
+            className="mx-4 block w-full resize-none rounded-lg border border-gray-300 bg-white p-2.5
+              text-base text-gray-900
+              placeholder-gray-400 shadow
+              outline-none focus:border-indigo-500
+              focus:ring-indigo-500 md:max-h-36 md:resize-y"
             placeholder="Your question..."
           ></textarea>
           {props.isBusy ? <Spinner /> : null}
@@ -79,11 +80,11 @@ const UserInput = (props: UserInputProps) => {
             <button
               type="submit"
               className="inline-flex cursor-pointer justify-center rounded-full p-2 text-blue-600
-              hover:bg-blue-100 dark:text-blue-500  dark:hover:bg-gray-600"
+              hover:bg-blue-100"
             >
               <svg
                 aria-hidden="true"
-                className="h-6 w-6 rotate-90"
+                className="h-6 w-6 rotate-90 text-indigo-500"
                 fill="currentColor"
                 viewBox="0 0 20 20"
                 xmlns="http://www.w3.org/2000/svg"

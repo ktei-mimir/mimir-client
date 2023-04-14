@@ -5,8 +5,9 @@ function ViewConversationLink(props: { text: string; conversationId: string }) {
     <li>
       <Link
         to={`/conversation/${props.conversationId}`}
-        className="flex items-center rounded-lg p-2 text-gray-900 
-        hover:bg-gray-100"
+        className="flex items-center rounded-lg p-2
+        text-white
+        hover:bg-indigo-400"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"

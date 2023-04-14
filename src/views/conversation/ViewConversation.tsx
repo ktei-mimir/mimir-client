@@ -22,7 +22,7 @@ import {
   useQuery,
   useQueryClient
 } from 'react-query'
-import { useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { useGlobalAlertActionsContext } from '@/context/GlobalAlertContext'
 import Spinner from '@/components/common/Spinner'
 import { handleApiError } from '@/helpers/apiErrorHandler'
@@ -224,20 +224,51 @@ const ViewConversation = () => {
         {isLoading && !isError ? (
           <Spinner className="mt-5 self-center" />
         ) : null}
-        {isSuccess ? (
-          <ul className="space-y-2 text-sm">
-            {data?.items.map((message: Message) => (
-              <ChatMessage
-                key={`${message.role}:${message.createdAt}`}
-                text={message.content}
-                role={message.role}
-              />
-            ))}
-          </ul>
-        ) : null}
+        {isSuccess ? renderMessages(data) : null}
       </div>
-      <UserInput onSubmit={handleMessageSubmit} />
+      <UserInput
+        onSubmit={handleMessageSubmit}
+        isBusy={createMessageMutation.isLoading}
+      />
     </>
+  )
+}
+
+function renderMessages(data: ListMessagesResponse | undefined) {
+  if (data === undefined) return null
+  if (data.items.length === 0)
+    return (
+      <div className="flex flex-col px-5">
+        <div
+          className="mt-5 rounded-md border border-gray-200 bg-gray-50 p-4 text-center text-sm text-gray-600"
+          role="alert"
+        >
+          No messages found for current conversation
+        </div>
+        <Link
+          to="/conversation"
+          type="button"
+          className="mt-5 inline-flex
+          w-full
+           items-center justify-center gap-2 self-center rounded-md border border-transparent bg-indigo-500
+            px-4 py-3 text-sm font-semibold text-white
+            transition-all
+            hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 md:w-48"
+        >
+          Create new conversation
+        </Link>
+      </div>
+    )
+  return (
+    <ul className="space-y-2 text-sm">
+      {data?.items.map((message: Message) => (
+        <ChatMessage
+          key={`${message.role}:${message.createdAt}`}
+          text={message.content}
+          role={message.role}
+        />
+      ))}
+    </ul>
   )
 }
 

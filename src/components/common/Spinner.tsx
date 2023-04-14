@@ -8,7 +8,7 @@ const Spinner = (
   return (
     <div
       className={classnames(
-        'inline-block h-6 w-6 animate-spin rounded-full border-[3px] border-current border-t-transparent text-gray-400',
+        'inline-block h-6 w-6 animate-spin rounded-full border-[3px] border-current border-t-transparent text-indigo-500',
         className
       )}
       role="status"

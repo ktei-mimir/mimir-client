@@ -94,17 +94,19 @@ function App() {
         <div
           id="navigation-menu"
           className="hs-overlay scrollbar-y fixed bottom-0 left-0 top-0 z-[60] hidden w-64
-          -translate-x-full transform overflow-y-auto border-r border-gray-200 bg-white
-          transition-all duration-300 hs-overlay-open:translate-x-0
+          -translate-x-full transform overflow-y-auto border-r border-indigo-500
+          bg-white transition-all duration-300 hs-overlay-open:translate-x-0
           lg:bottom-0 lg:right-auto lg:block lg:translate-x-0"
         >
-          <div className="h-full overflow-y-auto bg-gray-50 px-3 py-4">
+          <div className="h-full overflow-y-auto bg-indigo-500 px-3 py-4">
             {isError ? (
-              <p className="text-red-900">
+              <p className="text-white">
                 There was a problem with fetching conversations
               </p>
             ) : null}
-            {isLoading ? <p>Fetching conversations</p> : null}
+            {isLoading ? (
+              <p className="text-white">Fetching conversations</p>
+            ) : null}
             {isSuccess ? (
               <ul className="space-y-2 text-sm">
                 <NewConversationLink text="New Conversation" />

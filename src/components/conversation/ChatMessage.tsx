@@ -17,7 +17,7 @@ const ChatMessage = (props: MessageProps) => {
         <div>{isUser ? <UserIcon /> : <TerminalIcon />}</div>
         <div
           className={classnames(
-            'ml-2 flex-1 whitespace-pre-wrap rounded-md border border-gray-100 bg-gray-100 p-2',
+            'ml-2 flex-1 whitespace-pre-wrap rounded-md border border-gray-100 bg-gray-100 p-3 text-base',
             {
               'bg-white': isUser
             }
