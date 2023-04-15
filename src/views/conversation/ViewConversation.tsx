@@ -179,6 +179,7 @@ const ViewConversation = () => {
     setSelectedConversationId(conversationId)
     const messageToCreate = currentPendingMessage.current
     currentPendingMessage.current = ''
+
     async function sendPendingMessage() {
       if (!conversationId) return
       if (messageToCreate.trim().length > 0) {
@@ -265,7 +266,7 @@ function renderMessages(data: ListMessagesResponse | undefined) {
       </div>
     )
   return (
-    <ul className="space-y-2 text-sm">
+    <ul className="">
       {(data?.items ?? []).map((message: Message) => (
         <ChatMessage
           key={`${message.role}:${message.createdAt}`}
