@@ -9,7 +9,7 @@ export default {
     const id = randomUUID()
     return (
       <div
-        className="max-w-xs rounded-md border border-red-200 bg-red-100 text-sm text-red-500 shadow-md md:max-w-xl"
+        className="max-w-xs rounded-md border border-red-200 bg-red-100 text-sm text-red-500 shadow-md sm:max-w-xl"
         role="alert"
         id={`alert-${id}`}
       >

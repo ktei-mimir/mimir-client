@@ -48,18 +48,18 @@ const UserInput = (props: UserInputProps) => {
 
   return (
     <div
-      className="md:bg-vert-light-gradient absolute bottom-0 left-0 flex
+      className="sm:bg-vert-light-gradient absolute bottom-0 left-0 flex
       w-full justify-center border-t
-      bg-white pt-2 md:border-t-0 md:border-transparent"
+      bg-white pt-2 sm:border-t-0 sm:border-transparent"
     >
       <form
-        className="stretch ml-2 flex w-full flex-row gap-3 last:mb-2 md:mx-4 md:max-w-5xl"
+        className="stretch ml-2 flex w-full flex-row gap-3 last:mb-2 sm:mx-4 sm:max-w-5xl"
         onSubmit={handleSubmit}
       >
         <label htmlFor="chat" className="sr-only">
           Your question...
         </label>
-        <div className="flex w-full items-center py-2 md:px-3">
+        <div className="flex w-full items-center py-2 sm:px-3">
           <textarea
             id="chat"
             rows={1}
@@ -72,7 +72,7 @@ const UserInput = (props: UserInputProps) => {
               text-base text-gray-900
               placeholder-gray-400 shadow
               outline-none focus:border-indigo-500
-              focus:ring-indigo-500 md:max-h-36 md:resize-y"
+              focus:ring-indigo-500 sm:max-h-36 sm:resize-y"
             placeholder="Your question..."
           ></textarea>
           {props.isBusy ? <Spinner /> : null}

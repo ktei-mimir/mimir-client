@@ -44,6 +44,7 @@ import {
   listConversations
 } from './api/conversationApi'
 import GlobalAlertContextProvider from '@/context/GlobalAlertContext'
+import LogoutLink from '@/components/conversation/LogoutLink'
 
 function App() {
   const authenticatedApi = useAuthenticatedApi()
@@ -93,22 +94,19 @@ function App() {
       <div className="h-full">
         <div
           id="navigation-menu"
-          className="hs-overlay scrollbar-y fixed bottom-0 left-0 top-0 z-[60] hidden w-64
-          -translate-x-full transform overflow-y-auto border-r border-indigo-500
-          bg-white transition-all duration-300 hs-overlay-open:translate-x-0
-          lg:bottom-0 lg:right-auto lg:block lg:translate-x-0"
+          className="hs-overlay scrollbar-y fixed bottom-0 left-0 top-0 z-[60] flex hidden
+          w-64 -translate-x-full transform flex-col divide-y divide-indigo-300
+          overflow-y-auto border-r border-indigo-500 bg-white text-white
+          transition-all duration-300 hs-overlay-open:translate-x-0 sm:bottom-0 sm:right-auto sm:flex
+          sm:translate-x-0"
         >
-          <div className="h-full overflow-y-auto bg-indigo-500 px-3 py-4">
+          <div className="grow overflow-y-auto bg-indigo-500 px-3 py-4">
             {isError ? (
-              <p className="text-white">
-                There was a problem with fetching conversations
-              </p>
+              <p>There was a problem with fetching conversations</p>
             ) : null}
-            {isLoading ? (
-              <p className="text-white">Fetching conversations</p>
-            ) : null}
+            {isLoading ? <p>Fetching conversations</p> : null}
             {isSuccess ? (
-              <ul className="space-y-2 text-sm">
+              <ul className="space-y-2">
                 <NewConversationLink text="New Conversation" />
                 {data?.items.map((conversation: Conversation) => (
                   <ViewConversationLink
@@ -120,11 +118,14 @@ function App() {
               </ul>
             ) : null}
           </div>
+          <div className="bg-indigo-500 px-3 py-4">
+            <LogoutLink />
+          </div>
         </div>
 
-        <div className="h-full overflow-hidden md:ml-64">
-          <div className="relative flex h-full w-full justify-center">
-            <main className="transition-width relative flex h-full w-full flex-col items-stretch md:max-w-5xl">
+        <div className="flex h-full flex-col overflow-hidden sm:ml-64">
+          <div className="relative flex w-full grow justify-center overflow-y-auto">
+            <main className="transition-width  flex h-full w-full flex-col items-stretch sm:max-w-5xl">
               <GlobalAlertContextProvider>
                 <Routes>
                   <Route index element={<Navigate to="/conversation" />} />
@@ -137,6 +138,11 @@ function App() {
               </GlobalAlertContextProvider>
             </main>
           </div>
+          <footer className="flex w-full justify-center pb-4 text-sm text-gray-500">
+            <div>
+              &copy; {new Date().getFullYear()} Mimir. All rights reserved.
+            </div>
+          </footer>
         </div>
       </div>
     </Router>

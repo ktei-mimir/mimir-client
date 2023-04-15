@@ -259,7 +259,7 @@ function renderMessages(data: ListMessagesResponse | undefined) {
            items-center justify-center gap-2 self-center rounded-md border border-transparent bg-indigo-500
             px-4 py-3 text-sm font-semibold text-white
             transition-all
-            hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 md:w-48"
+            hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:w-48"
         >
           Create new conversation
         </Link>

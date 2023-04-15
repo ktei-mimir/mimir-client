@@ -28,9 +28,9 @@ const ChatMessage = (props: MessageProps) => {
     hljs.highlightAll()
   }, [props.text])
   return (
-    <div className="md:w-3xl mx-auto flex-1 pt-4 text-gray-700 md:max-w-3xl">
+    <div className="sm:w-3xl mx-auto flex-1 pt-4 text-gray-700 sm:max-w-3xl">
       <div className="flex flex-row">
-        <div className="collapse max-w-0 md:visible md:max-w-lg">
+        <div className="collapse max-w-0 sm:visible sm:max-w-lg">
           {isUser ? <UserIcon /> : <TerminalIcon />}
         </div>
         <div
