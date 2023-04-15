@@ -33,7 +33,7 @@ const GlobalAlertContextProvider = (props: Props) => {
     (message?: string) => setState({ ...state, notification: message }),
     [state]
   )
-  const values = useMemo(() => state, [state])
+  const values = useMemo(() => state ?? {}, [state])
   const actions = useMemo(
     () => ({
       setError,
@@ -42,7 +42,7 @@ const GlobalAlertContextProvider = (props: Props) => {
     [setError, setNotification]
   )
   return (
-    <GlobalAlertContext.Provider value={values}>
+    <GlobalAlertContext.Provider value={values ?? {}}>
       <GlobalAlertActionsContext.Provider value={actions}>
         <GlobalAlert />
         {children}

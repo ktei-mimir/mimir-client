@@ -4,7 +4,6 @@ import { memo } from 'react'
 import useAppState from '@/store/appStateStore'
 
 function ViewConversationLink(props: { text: string; conversationId: string }) {
-  // const conversationId = window.location.href.split('/').pop()
   const { selectedConversationId } = useAppState()
   return (
     <li>

@@ -1,16 +1,32 @@
 import { Role } from '@/api/messageApi'
 import { TerminalIcon, UserIcon } from '@/components/common/icons'
 import classnames from 'classnames'
-import { memo } from 'react'
+import { memo, useEffect } from 'react'
 import Spinner from '@/components/common/Spinner'
+import { marked } from 'marked'
+import hljs from 'highlight.js'
+import 'highlight.js/styles/github.css'
+import DOMPurify from 'isomorphic-dompurify'
 
 type MessageProps = {
   text?: string
   role: Role
 }
 
+function renderText(text: string, role: Role) {
+  if (role === 'user') return text
+  return (
+    <div
+      dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(marked(text)) }}
+    ></div>
+  )
+}
+
 const ChatMessage = (props: MessageProps) => {
   const isUser = props.role === 'user'
+  useEffect(() => {
+    hljs.highlightAll()
+  }, [props.text])
   return (
     <div className="md:w-3xl mx-auto max-w-3xl flex-1 pt-4 text-gray-700">
       <div className="flex flex-row">
@@ -26,7 +42,7 @@ const ChatMessage = (props: MessageProps) => {
             }
           )}
         >
-          {props.text ? props.text : <Spinner />}
+          {props.text ? renderText(props.text, props.role) : <Spinner />}
         </div>
       </div>
     </div>
