@@ -272,6 +272,10 @@ function renderMessages(data: ListMessagesResponse | undefined) {
         >
           Create new conversation
         </Link>
+        <p className="mt-5 self-center text-gray-500">Or</p>
+        <p className="mt-5 self-center text-gray-500">
+          Use the text box bottom to send a new message
+        </p>
       </div>
     )
   return (
