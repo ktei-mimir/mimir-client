@@ -208,6 +208,8 @@ const ViewConversation = () => {
       })
     }
 
+    scrollToBottom()
+
     return () => {
       if (hubConnection.current) {
         hubConnection.current.off('StreamMessage', handleStreamMessage)
@@ -221,8 +223,14 @@ const ViewConversation = () => {
     handleStreamMessage,
     queryClient,
     queryKey,
-    setSelectedConversationId
+    setSelectedConversationId,
+    data?.items
   ])
+
+  const messagesEndRef = useRef<HTMLDivElement | null>(null)
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }
 
   return (
     <>
@@ -231,6 +239,7 @@ const ViewConversation = () => {
           <Spinner className="mt-5 self-center" />
         ) : null}
         {isSuccess ? renderMessages(data) : null}
+        <div ref={messagesEndRef}></div>
       </div>
       <UserInput
         onSubmit={handleMessageSubmit}
