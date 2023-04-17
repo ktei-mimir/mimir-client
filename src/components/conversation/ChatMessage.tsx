@@ -15,11 +15,14 @@ type MessageProps = {
 
 function renderText(text: string, role: Role) {
   if (role === 'user') return text
-  return (
-    <div
-      dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(marked(text)) }}
-    ></div>
-  )
+  if (text.includes('```')) {
+    return (
+      <div
+        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(marked(text)) }}
+      ></div>
+    )
+  }
+  return text
 }
 
 const ChatMessage = (props: MessageProps) => {
