@@ -96,9 +96,9 @@ function App() {
           id="navigation-menu"
           className="hs-overlay scrollbar-y fixed bottom-0 left-0 top-0 z-[60] flex hidden
           w-64 -translate-x-full transform flex-col divide-y divide-indigo-300
-          overflow-y-auto border-r border-indigo-500 bg-white text-white
-          transition-all duration-300 hs-overlay-open:translate-x-0 sm:bottom-0 sm:right-auto sm:flex
-          sm:translate-x-0"
+          overflow-y-auto border-r border-indigo-500 bg-white text-sm
+          text-white transition-all duration-300 hs-overlay-open:translate-x-0 sm:bottom-0 sm:right-auto
+          sm:flex sm:translate-x-0"
         >
           <div className="grow overflow-y-auto bg-indigo-500 px-3 py-4">
             {isError ? (
