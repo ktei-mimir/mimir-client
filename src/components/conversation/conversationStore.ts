@@ -1,21 +1,18 @@
 import { atom, useAtom } from 'jotai'
+import { useCallback } from 'react'
 
 const pendingMessageAtom = atom('')
 
 function usePendingMessage() {
   const [pendingMessage, setPendingMessage] = useAtom(pendingMessageAtom)
 
-  function clearPendingMessage() {
+  const clearPendingMessage = useCallback(() => {
     setPendingMessage('')
-  }
-
-  function setNewPendingMessage(message: string) {
-    setPendingMessage(message)
-  }
+  }, [setPendingMessage])
 
   return {
     pendingMessage,
-    setPendingMessage: setNewPendingMessage,
+    setPendingMessage,
     clearPendingMessage
   }
 }

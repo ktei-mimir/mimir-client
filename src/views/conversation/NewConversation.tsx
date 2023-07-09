@@ -1,15 +1,15 @@
 // import logoUrl from '@/assets/yggdrasil.png'
-import UserInput from '@/components/conversation/UserInput'
-import { useMutation, useQueryClient } from 'react-query'
 import { createConversation } from '@/api/conversationApi'
-import useAuthenticatedApi from '@/hooks/useAuthenticatedApi'
-import { useNavigate } from 'react-router-dom'
+import Logo from '@/components/common/Logo'
+import UserInput from '@/components/conversation/UserInput'
 import usePendingMessage from '@/components/conversation/conversationStore'
 import { useGlobalAlertActionsContext } from '@/context/GlobalAlertContext'
 import { handleApiError } from '@/helpers/apiErrorHandler'
-import Logo from '@/components/common/Logo'
+import useAuthenticatedApi from '@/hooks/useAuthenticatedApi'
 import useAppState from '@/store/appStateStore'
 import { useEffect } from 'react'
+import { useMutation, useQueryClient } from 'react-query'
+import { useNavigate } from 'react-router-dom'
 
 const NewConversation = () => {
   const queryClient = useQueryClient()
@@ -29,7 +29,7 @@ const NewConversation = () => {
 
   const handleMessageSubmit = async (message: string) => {
     setError(undefined)
-    await createConversationMutation.mutate(message, {
+    await createConversationMutation.mutateAsync(message, {
       onError: error => {
         handleApiError(error, setError)
       },

@@ -5,17 +5,21 @@ import {
   createMessage,
   listMessages
 } from '@/api/messageApi'
+import Spinner from '@/components/common/Spinner'
 import ChatMessage from '@/components/conversation/ChatMessage'
 import UserInput from '@/components/conversation/UserInput'
 import usePendingMessage from '@/components/conversation/conversationStore'
+import { useGlobalAlertActionsContext } from '@/context/GlobalAlertContext'
+import { handleApiError } from '@/helpers/apiErrorHandler'
 import dateUtils from '@/helpers/dateUtils'
 import { buildConnection } from '@/helpers/signalRConnectionFactory'
 import { randomUUID } from '@/helpers/stringUtils'
 import useAuthenticatedApi from '@/hooks/useAuthenticatedApi'
+import useAppState from '@/store/appStateStore'
 import { useAuth0 } from '@auth0/auth0-react'
 import * as signalR from '@microsoft/signalr'
 import produce from 'immer'
-import { useCallback, useEffect, useRef } from 'react'
+import { memo, useCallback, useEffect, useRef, useState } from 'react'
 import {
   QueryFunction,
   useMutation,
@@ -23,10 +27,6 @@ import {
   useQueryClient
 } from 'react-query'
 import { Link, useParams } from 'react-router-dom'
-import { useGlobalAlertActionsContext } from '@/context/GlobalAlertContext'
-import Spinner from '@/components/common/Spinner'
-import { handleApiError } from '@/helpers/apiErrorHandler'
-import useAppState from '@/store/appStateStore'
 
 type StreamMessageRequest = {
   streamId: string
@@ -87,65 +87,59 @@ const ViewConversation = () => {
     }
   )
 
-  const createMessageMutation = useMutation(
-    'createMessage',
-    (request: CreateMessageRequest) => createMessage(authenticatedApi, request),
-    {
-      onMutate: async (request: CreateMessageRequest) => {
-        setError()
-        await queryClient.cancelQueries(queryKey)
+  const { mutateAsync: createMessageAsync, isLoading: isCreatingMessage } =
+    useMutation(
+      'createMessage',
+      (request: CreateMessageRequest) =>
+        createMessage(authenticatedApi, request),
+      {
+        onMutate: async (request: CreateMessageRequest) => {
+          setError()
+          await queryClient.cancelQueries(queryKey)
 
-        const currentData =
-          queryClient.getQueryData<ListMessagesResponse>(queryKey)
+          return queryClient.setQueryData<ListMessagesResponse>(
+            queryKey,
+            oldData => {
+              const userMessage: Message = {
+                content: request.content,
+                role: 'user',
+                createdAt: dateUtils.getUtcNowTicks()
+              }
+              const assistantMessage: Message = {
+                streamId: request.streamId,
+                role: 'assistant',
 
-        if (currentData) {
-          queryClient.setQueryData<ListMessagesResponse>(queryKey, oldData => {
-            const userMessage: Message = {
-              content: request.content,
-              role: 'user',
-              createdAt: dateUtils.getUtcNowTicks()
+                // force the assistant message to be after the user message
+                createdAt: dateUtils.getUtcNowTicks() + 1
+              }
+              return appendMessages(
+                oldData ?? { items: [] },
+                userMessage,
+                assistantMessage
+              )
             }
-            const assistantMessage: Message = {
-              streamId: request.streamId,
-              role: 'assistant',
-              createdAt: dateUtils.getUtcNowTicks() + 1
-            }
-            return appendMessages(
-              oldData ?? { items: [] },
-              userMessage,
-              assistantMessage
-            )
-          })
+          )
+        },
+        onError: (err, variables, context?: ListMessagesResponse) => {
+          if (context) {
+            queryClient.setQueryData(queryKey, context)
+          }
+          handleApiError(
+            err,
+            setError,
+            'There was a problem with processing your message. Please try again later.'
+          )
+        },
+        onSettled: async () => {
+          await queryClient.invalidateQueries(queryKey)
         }
-
-        return currentData
-      },
-      onError: (err, variables, context?: ListMessagesResponse) => {
-        if (context) {
-          queryClient.setQueryData(queryKey, context)
-        }
-        handleApiError(
-          err,
-          setError,
-          'There was a problem with processing your message. Please try again later.'
-        )
-      },
-      onSettled: async () => {
-        await queryClient.invalidateQueries(queryKey)
       }
-    }
-  )
+    )
 
-  const hubConnection = useRef<signalR.HubConnection | undefined>()
+  const [hubConnection, setHubConnection] = useState<signalR.HubConnection>()
 
   const handleMessageSubmit = async (message: string) => {
-    if (!conversationId) {
-      return
-    }
-    if (!hubConnection.current || !hubConnection.current.connectionId) {
-      return
-    }
-    createMessageMutation.mutate({
+    await createMessageAsync({
       streamId: randomUUID(),
       conversationId: conversationId,
       content: message
@@ -153,7 +147,6 @@ const ViewConversation = () => {
   }
 
   const { pendingMessage, clearPendingMessage } = usePendingMessage()
-  const currentPendingMessage = useRef(pendingMessage)
 
   const { getAccessTokenSilently } = useAuth0()
 
@@ -162,13 +155,18 @@ const ViewConversation = () => {
       if (m.conversationId !== conversationId) return
       let currentConversation =
         queryClient.getQueryData<ListMessagesResponse>(queryKey)
-      if (!currentConversation) return
+      if (!currentConversation) {
+        console.log('No current conversation found: ', conversationId)
+        return
+      }
+
       currentConversation = streamMessage(
         currentConversation,
         m.streamId,
         m.content
       )
       queryClient.setQueryData(queryKey, currentConversation)
+      scrollToBottom()
     },
     [conversationId, queryClient, queryKey]
   )
@@ -176,55 +174,53 @@ const ViewConversation = () => {
   const { setSelectedConversationId } = useAppState()
 
   useEffect(() => {
+    setHubConnection(buildConnection(getAccessTokenSilently))
+  }, [getAccessTokenSilently])
+
+  useEffect(() => {
     setSelectedConversationId(conversationId)
-    const messageToCreate = currentPendingMessage.current
-    currentPendingMessage.current = ''
 
     async function sendPendingMessage() {
       if (!conversationId) return
-      if (messageToCreate.trim().length > 0) {
-        clearPendingMessage()
-        if (!hubConnection.current || !hubConnection.current.connectionId)
-          return
-        createMessageMutation.mutate({
-          streamId: randomUUID(),
-          conversationId: conversationId,
-          content: messageToCreate
+      const messageToCreate = pendingMessage.trim()
+      if (pendingMessage.length === 0) {
+        return
+      }
+      clearPendingMessage()
+      await createMessageAsync({
+        streamId: randomUUID(),
+        conversationId: conversationId,
+        content: messageToCreate
+      })
+    }
+
+    if (hubConnection) {
+      hubConnection.on('StreamMessage', handleStreamMessage)
+      if (hubConnection.state !== signalR.HubConnectionState.Connected) {
+        hubConnection.start().then(() => {
+          if (hubConnection.state === signalR.HubConnectionState.Connected) {
+            sendPendingMessage().then()
+          }
         })
       }
-    }
-
-    if (hubConnection.current) {
-      hubConnection.current.on('StreamMessage', handleStreamMessage)
-    }
-
-    if (!hubConnection.current) {
-      const connection = buildConnection(getAccessTokenSilently)
-      hubConnection.current = connection
-      connection.start().then(() => {
-        if (connection.state === signalR.HubConnectionState.Connected) {
-          sendPendingMessage().then()
-        }
-      })
     }
 
     scrollToBottom()
 
     return () => {
-      if (hubConnection.current) {
-        hubConnection.current.off('StreamMessage', handleStreamMessage)
-      }
+      hubConnection?.off('StreamMessage', handleStreamMessage)
     }
   }, [
     clearPendingMessage,
     conversationId,
-    createMessageMutation,
+    createMessageAsync,
     getAccessTokenSilently,
     handleStreamMessage,
     queryClient,
     queryKey,
     setSelectedConversationId,
-    data?.items
+    hubConnection,
+    pendingMessage
   ])
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null)
@@ -241,10 +237,7 @@ const ViewConversation = () => {
         {isSuccess ? renderMessages(data) : null}
         <div ref={messagesEndRef}></div>
       </div>
-      <UserInput
-        onSubmit={handleMessageSubmit}
-        isBusy={createMessageMutation.isLoading}
-      />
+      <UserInput onSubmit={handleMessageSubmit} isBusy={isCreatingMessage} />
     </>
   )
 }
@@ -291,4 +284,4 @@ function renderMessages(data: ListMessagesResponse | undefined) {
   )
 }
 
-export default ViewConversation
+export default memo(ViewConversation)

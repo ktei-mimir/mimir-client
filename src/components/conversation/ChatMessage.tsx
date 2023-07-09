@@ -1,12 +1,12 @@
 import { Role } from '@/api/messageApi'
+import Spinner from '@/components/common/Spinner'
 import { TerminalIcon, UserIcon } from '@/components/common/icons'
 import classnames from 'classnames'
-import { memo, useEffect } from 'react'
-import Spinner from '@/components/common/Spinner'
-import { marked } from 'marked'
 import hljs from 'highlight.js'
 import 'highlight.js/styles/github.css'
 import DOMPurify from 'isomorphic-dompurify'
+import { marked } from 'marked'
+import { memo, useEffect } from 'react'
 
 type MessageProps = {
   text?: string
@@ -28,6 +28,9 @@ function renderText(text: string, role: Role) {
 const ChatMessage = (props: MessageProps) => {
   const isUser = props.role === 'user'
   useEffect(() => {
+    hljs.configure({
+      ignoreUnescapedHTML: true
+    })
     hljs.highlightAll()
   }, [props.text])
   return (
