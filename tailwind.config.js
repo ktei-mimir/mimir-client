@@ -6,7 +6,11 @@ export default {
     'node_modules/preline/dist/*.js'
   ],
   theme: {
-    extend: {}
+    extend: {
+      fontFamily: {
+        primary: ['Open Sans']
+      }
+    }
   },
   plugins: [require('preline/plugin')]
 }
