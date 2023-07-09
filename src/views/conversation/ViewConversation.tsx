@@ -152,11 +152,18 @@ const ViewConversation = () => {
 
   const handleStreamMessage = useCallback(
     (m: StreamMessageRequest) => {
-      if (m.conversationId !== conversationId) return
+      if (m.conversationId !== conversationId) {
+        console.warn(
+          'ConversationId not matched',
+          m.conversationId,
+          conversationId
+        )
+        return
+      }
       let currentConversation =
         queryClient.getQueryData<ListMessagesResponse>(queryKey)
       if (!currentConversation) {
-        console.log('No current conversation found: ', conversationId)
+        console.warn('No current conversation found', conversationId)
         return
       }
 
@@ -199,7 +206,7 @@ const ViewConversation = () => {
       if (hubConnection.state !== signalR.HubConnectionState.Connected) {
         hubConnection.start().then(() => {
           if (hubConnection.state === signalR.HubConnectionState.Connected) {
-            sendPendingMessage().then()
+            sendPendingMessage().catch(console.error)
           }
         })
       }
