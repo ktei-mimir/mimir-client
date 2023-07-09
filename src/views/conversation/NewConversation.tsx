@@ -49,11 +49,11 @@ const NewConversation = () => {
     <>
       <div className="flex h-full w-full flex-col justify-center overflow-auto pb-28">
         <div className="flex h-full flex-1 flex-col justify-center gap-4">
-          <h1 className="text-center text-4xl font-medium text-gray-700">
+          <h1 className="text-center text-4xl font-medium text-zinc-300">
             Mimir
           </h1>
           <Logo />
-          <p className="text-center text-xl italic text-gray-700">
+          <p className="text-center text-xl font-extralight italic text-zinc-300">
             Hello mortal, I have knowledge, so ask me anything...
           </p>
         </div>

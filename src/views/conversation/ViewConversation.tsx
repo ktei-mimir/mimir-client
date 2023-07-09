@@ -255,7 +255,7 @@ function renderMessages(data: ListMessagesResponse | undefined) {
     return (
       <div className="flex flex-col px-5">
         <div
-          className="mt-5 rounded-md border border-gray-200 bg-gray-50 p-4 text-center text-sm text-gray-600"
+          className="mt-5 bg-zinc-700 p-4 text-center text-sm text-gray-200"
           role="alert"
         >
           No messages found for current conversation
@@ -265,10 +265,10 @@ function renderMessages(data: ListMessagesResponse | undefined) {
           type="button"
           className="mt-5 inline-flex
           w-full
-           items-center justify-center gap-2 self-center rounded-md border border-transparent bg-indigo-500
+           items-center justify-center gap-2 self-center bg-slate-700
             px-4 py-3 text-sm font-semibold text-white
-            transition-all
-            hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:w-48"
+            transition-colors
+            hover:bg-slate-800 sm:w-56"
         >
           Create new conversation
         </Link>

@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
 import Spinner from '@/components/common/Spinner'
+import React, { useState } from 'react'
 
 type UserInputProps = {
   onSubmit?: (message: string) => void
@@ -49,8 +49,8 @@ const UserInput = (props: UserInputProps) => {
   return (
     <div
       className="sm:bg-vert-light-gradient absolute bottom-0 left-0 flex
-      w-full justify-center border-t
-      bg-white pt-2 sm:border-t-0 sm:border-transparent"
+      w-full justify-center border-t border-zinc-700
+      bg-zinc-800 pt-2 sm:border-t-0 sm:border-transparent"
     >
       <form
         className="stretch ml-2 flex w-full flex-row gap-3 last:mb-2 sm:mx-4 sm:max-w-5xl"
@@ -68,23 +68,22 @@ const UserInput = (props: UserInputProps) => {
             onChange={onChange}
             onKeyDown={handleKeyDown}
             value={form.message}
-            className="mx-4 block w-full resize-none rounded-lg border border-gray-300 bg-white p-2.5
-              text-base text-gray-900
+            className="mx-4 block w-full resize-none bg-zinc-700 p-2.5
+              text-base text-white
               placeholder-gray-400 shadow
-              outline-none focus:border-indigo-500
-              focus:ring-indigo-500 sm:max-h-36 sm:resize-y"
+              outline-none sm:max-h-36 sm:resize-y"
             placeholder="Your question..."
           ></textarea>
           {props.isBusy ? <Spinner /> : null}
           {props.isBusy ? null : (
             <button
               type="submit"
-              className="inline-flex cursor-pointer justify-center rounded-full p-2 text-blue-600
-              hover:bg-blue-100"
+              className="group inline-flex cursor-pointer justify-center rounded-full p-2 text-slate-700
+               transition-colors hover:bg-slate-700"
             >
               <svg
                 aria-hidden="true"
-                className="h-6 w-6 rotate-90 text-indigo-500"
+                className="h-6 w-6 rotate-90 text-zinc-500 group-hover:text-white"
                 fill="currentColor"
                 viewBox="0 0 20 20"
                 xmlns="http://www.w3.org/2000/svg"

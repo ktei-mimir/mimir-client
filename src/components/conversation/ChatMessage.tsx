@@ -3,7 +3,7 @@ import Spinner from '@/components/common/Spinner'
 import { TerminalIcon, UserIcon } from '@/components/common/icons'
 import classnames from 'classnames'
 import hljs from 'highlight.js'
-import 'highlight.js/styles/github.css'
+import 'highlight.js/styles/atom-one-dark.css'
 import DOMPurify from 'isomorphic-dompurify'
 import { marked } from 'marked'
 import { memo, useEffect } from 'react'
@@ -34,20 +34,14 @@ const ChatMessage = (props: MessageProps) => {
     hljs.highlightAll()
   }, [props.text])
   return (
-    <div className="sm:w-3xl mx-auto flex-1 pt-4 text-gray-700 sm:max-w-3xl">
+    <div className="sm:w-3xl mx-auto flex-1 pt-4 font-extralight text-gray-200 sm:max-w-3xl">
       <div className="flex flex-row">
         <div className="collapse max-w-0 sm:visible sm:max-w-lg">
           {isUser ? <UserIcon /> : <TerminalIcon />}
         </div>
         <div
           className={classnames(
-            'ml-2 flex-1 overflow-x-auto whitespace-pre-wrap rounded-md border border-gray-100 p-3 text-base shadow-sm',
-            {
-              'bg-white': isUser
-            },
-            {
-              'bg-gray-100': !isUser
-            }
+            'ml-2 flex-1 overflow-x-auto whitespace-pre-wrap bg-slate-700 p-3 text-base shadow-sm'
           )}
         >
           {props.text ? renderText(props.text, props.role) : <Spinner />}
