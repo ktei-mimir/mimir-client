@@ -25,7 +25,7 @@ function ViewConversationLink(props: { text: string; conversationId: string }) {
           viewBox="0 -2 24 24"
           strokeWidth={1}
           stroke="currentColor"
-          className="h-5 w-5 flex-shrink-0"
+          className="h-5 w-5"
         >
           <path
             strokeLinecap="round"
@@ -34,7 +34,7 @@ function ViewConversationLink(props: { text: string; conversationId: string }) {
           />
         </svg>
         <div
-          className="ml-3 flex-1 overflow-hidden text-ellipsis whitespace-nowrap [--placement:bottom]"
+          className="ml-3 flex-1 overflow-hidden text-ellipsis whitespace-nowrap"
           title={props.text}
         >
           {props.text}
