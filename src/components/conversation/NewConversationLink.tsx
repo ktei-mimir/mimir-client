@@ -5,9 +5,9 @@ function NewConversationLink(props: { text: string }) {
     <li>
       <Link
         to="/conversation"
-        className="flex items-center rounded-lg p-2 font-medium
+        className="flex items-center p-2 font-medium
         text-white
-        hover:bg-indigo-400"
+        transition-colors hover:bg-slate-700"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"

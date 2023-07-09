@@ -1,4 +1,3 @@
-import React from 'react'
 import { useAuth0 } from '@auth0/auth0-react'
 
 const LogoutLink = () => {
@@ -7,9 +6,9 @@ const LogoutLink = () => {
   return (
     <a
       href="#"
-      className="flex items-center rounded-lg p-2
+      className="flex items-center p-2
         text-white
-        hover:bg-indigo-400"
+        transition-colors hover:bg-slate-700"
       onClick={e => {
         e.preventDefault()
         logout({ logoutParams: { returnTo: window.location.origin } })
