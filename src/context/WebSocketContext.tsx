@@ -30,7 +30,7 @@ const WebSocketContextProvider = (props: Props) => {
   // In functional React component
   const getSocketUrl = useCallback(async () => {
     const token = await getAccessTokenSilently()
-    return `wss://9riswt00ti.execute-api.ap-southeast-2.amazonaws.com/prod/?token=${token}`
+    return `wss://mimir-chat-socket.disasterdev.net/prod/?token=${token}`
   }, [getAccessTokenSilently])
 
   const { getWebSocket } = useWebSocket(getSocketUrl, {
