@@ -15,7 +15,7 @@ type CreateConversationResponse = {
 }
 
 export const listConversations = (api: AuthenticatedApi) =>
-  api.get<ListConversationsResponse>('v1/conversations').then(res => res.data)
+  api.get<ListConversationsResponse>('conversations').then(res => res.data)
 
 export type CreateConversationRequest = {
   message: string
@@ -23,4 +23,4 @@ export type CreateConversationRequest = {
 export const createConversation = (
   api: AuthenticatedApi,
   request: CreateConversationRequest
-) => api.post<CreateConversationResponse>('v1/conversations', request)
+) => api.post<CreateConversationResponse>('conversations', request)

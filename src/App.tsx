@@ -45,6 +45,7 @@ import {
   ListConversationsResponse,
   listConversations
 } from './api/conversationApi'
+import WebSocketContextProvider from '@/context/WebSocketContext'
 
 function App() {
   const authenticatedApi = useAuthenticatedApi()
@@ -128,14 +129,19 @@ function App() {
             <div className="relative flex w-full grow justify-center overflow-y-auto">
               <main className="transition-width  flex h-full w-full flex-col items-stretch sm:max-w-5xl">
                 <GlobalAlertContextProvider>
-                  <Routes>
-                    <Route index element={<Navigate to="/conversation" />} />
-                    <Route path="/conversation" element={<NewConversation />} />
-                    <Route
-                      path="/conversation/:conversationId"
-                      element={<ViewConversation />}
-                    />
-                  </Routes>
+                  <WebSocketContextProvider>
+                    <Routes>
+                      <Route index element={<Navigate to="/conversation" />} />
+                      <Route
+                        path="/conversation"
+                        element={<NewConversation />}
+                      />
+                      <Route
+                        path="/conversation/:conversationId"
+                        element={<ViewConversation />}
+                      />
+                    </Routes>
+                  </WebSocketContextProvider>
                 </GlobalAlertContextProvider>
               </main>
             </div>

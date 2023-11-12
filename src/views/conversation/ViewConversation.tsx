@@ -12,14 +12,13 @@ import usePendingMessage from '@/components/conversation/conversationStore'
 import { useGlobalAlertActionsContext } from '@/context/GlobalAlertContext'
 import { handleApiError } from '@/helpers/apiErrorHandler'
 import dateUtils from '@/helpers/dateUtils'
-import { buildConnection } from '@/helpers/signalRConnectionFactory'
 import { randomUUID } from '@/helpers/stringUtils'
 import useAuthenticatedApi from '@/hooks/useAuthenticatedApi'
 import useAppState from '@/store/appStateStore'
-import { useAuth0 } from '@auth0/auth0-react'
-import * as signalR from '@microsoft/signalr'
+// import { useAuth0 } from '@auth0/auth0-react'
+// import * as signalR from '@microsoft/signalr'
 import produce from 'immer'
-import { memo, useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   QueryFunction,
   useMutation,
@@ -27,6 +26,7 @@ import {
   useQueryClient
 } from 'react-query'
 import { Link, useParams } from 'react-router-dom'
+import { useWebSocketContext } from '@/context/WebSocketContext'
 
 type StreamMessageRequest = {
   streamId: string
@@ -87,56 +87,62 @@ const ViewConversation = () => {
     }
   )
 
-  const { mutateAsync: createMessageAsync, isLoading: isCreatingMessage } =
-    useMutation(
-      'createMessage',
-      (request: CreateMessageRequest) =>
-        createMessage(authenticatedApi, request),
-      {
-        onMutate: async (request: CreateMessageRequest) => {
-          setError()
-          await queryClient.cancelQueries(queryKey)
+  const [isBusy, setIsBusy] = useState(false)
 
-          return queryClient.setQueryData<ListMessagesResponse>(
-            queryKey,
-            oldData => {
-              const userMessage: Message = {
-                content: request.content,
-                role: 'user',
-                createdAt: dateUtils.getUtcNowTicks()
-              }
-              const assistantMessage: Message = {
-                streamId: request.streamId,
-                role: 'assistant',
+  const {
+    mutateAsync: createMessageAsync
+    // isLoading: isCreatingMessage,
+  } = useMutation(
+    'createMessage',
+    (request: CreateMessageRequest) => createMessage(authenticatedApi, request),
+    {
+      onMutate: async (request: CreateMessageRequest) => {
+        setError()
+        setIsBusy(true)
+        await queryClient.cancelQueries(queryKey)
 
-                // force the assistant message to be after the user message
-                createdAt: dateUtils.getUtcNowTicks() + 1
-              }
-              return appendMessages(
-                oldData ?? { items: [] },
-                userMessage,
-                assistantMessage
-              )
+        return queryClient.setQueryData<ListMessagesResponse>(
+          queryKey,
+          oldData => {
+            const userMessage: Message = {
+              content: request.content,
+              role: 'user',
+              createdAt: dateUtils.getUtcNowTicks()
             }
-          )
-        },
-        onError: (err, variables, context?: ListMessagesResponse) => {
-          if (context) {
-            queryClient.setQueryData(queryKey, context)
-          }
-          handleApiError(
-            err,
-            setError,
-            'There was a problem with processing your message. Please try again later.'
-          )
-        },
-        onSettled: async () => {
-          await queryClient.invalidateQueries(queryKey)
-        }
-      }
-    )
+            const assistantMessage: Message = {
+              streamId: request.streamId,
+              role: 'assistant',
 
-  const [hubConnection, setHubConnection] = useState<signalR.HubConnection>()
+              // force the assistant message to be after the user message
+              createdAt: dateUtils.getUtcNowTicks() + 1
+            }
+            return appendMessages(
+              oldData ?? { items: [] },
+              userMessage,
+              assistantMessage
+            )
+          }
+        )
+      },
+      onError: (err, variables, context?: ListMessagesResponse) => {
+        if (context) {
+          queryClient.setQueryData(queryKey, context)
+        }
+        handleApiError(
+          err,
+          setError,
+          'There was a problem with processing your message. Please try again later.'
+        )
+      },
+      onSettled: async () => {
+        await queryClient.invalidateQueries(queryKey)
+        setIsBusy(false)
+      }
+    }
+  )
+
+  // const [socket, setSocket] = useState<WebSocket>()
+  const pendingMessageSent = useRef(false)
 
   const handleMessageSubmit = async (message: string) => {
     await createMessageAsync({
@@ -148,7 +154,8 @@ const ViewConversation = () => {
 
   const { pendingMessage, clearPendingMessage } = usePendingMessage()
 
-  const { getAccessTokenSilently } = useAuth0()
+  // const { getAccessTokenSilently } = useAuth0()
+  const { socket } = useWebSocketContext()
 
   const handleStreamMessage = useCallback(
     (m: StreamMessageRequest) => {
@@ -180,55 +187,91 @@ const ViewConversation = () => {
 
   const { setSelectedConversationId } = useAppState()
 
+  const handleSocketMessage = useCallback(
+    (e: Event) => {
+      const m: StreamMessageRequest = JSON.parse((e as MessageEvent).data)
+      console.log(m.content)
+      handleStreamMessage(m)
+    },
+    [handleStreamMessage]
+  )
+
+  const sendPendingMessage = useCallback(async () => {
+    if (pendingMessageSent.current) return
+    if (!conversationId) return
+    const messageToCreate = pendingMessage.trim()
+    if (pendingMessage.length === 0) {
+      return
+    }
+    await createMessageAsync({
+      streamId: randomUUID(),
+      conversationId: conversationId,
+      content: messageToCreate
+    })
+    clearPendingMessage()
+  }, [clearPendingMessage, conversationId, createMessageAsync, pendingMessage])
+
+  // const handleSocketOpen = useCallback(() => {
+  //   console.log('socket opened')
+  // }, [])
+
+  // useEffect(() => {
+  //   // buildConnection(getAccessTokenSilently).then(socket => {
+  //   //   socket.addEventListener('open', handleSocketOpen)
+  //   // })
+  //   if (!socket) return
+  //   socket.addEventListener('open', handleSocketOpen)
+  // }, [handleSocketOpen, socket])
+
   useEffect(() => {
-    setHubConnection(buildConnection(getAccessTokenSilently))
-  }, [getAccessTokenSilently])
+    if (!socket) return
+    // socket.removeEventListener('message', handleSocketMessage)
+    socket.addEventListener('message', handleSocketMessage)
+    console.log('handleSocketMessage mounted')
+
+    return () => {
+      console.log('handleSocketMessage unmounted')
+      // socket?.removeEventListener('open', handleSocketOpen)
+      socket?.removeEventListener('message', handleSocketMessage)
+      // hubConnection?.off('StreamMessage', handleStreamMessage)
+    }
+  }, [handleSocketMessage, socket])
+
+  useEffect(() => {
+    sendPendingMessage().catch(console.log)
+    pendingMessageSent.current = true
+  }, [sendPendingMessage])
 
   useEffect(() => {
     setSelectedConversationId(conversationId)
 
-    async function sendPendingMessage() {
-      if (!conversationId) return
-      const messageToCreate = pendingMessage.trim()
-      if (pendingMessage.length === 0) {
-        return
-      }
-      clearPendingMessage()
-      await createMessageAsync({
-        streamId: randomUUID(),
-        conversationId: conversationId,
-        content: messageToCreate
-      })
-    }
+    // async function sendPendingMessage() {
+    //   if (!conversationId) return
+    //   const messageToCreate = pendingMessage.trim()
+    //   if (pendingMessage.length === 0) {
+    //     return
+    //   }
+    //   clearPendingMessage()
+    //   await createMessageAsync({
+    //     streamId: randomUUID(),
+    //     conversationId: conversationId,
+    //     content: messageToCreate
+    //   })
+    // }
 
-    if (hubConnection) {
-      hubConnection.on('StreamMessage', handleStreamMessage)
-      if (hubConnection.state !== signalR.HubConnectionState.Connected) {
-        hubConnection.start().then(() => {
-          if (hubConnection.state === signalR.HubConnectionState.Connected) {
-            sendPendingMessage().catch(console.error)
-          }
-        })
-      }
-    }
+    // if (socket) {
+    // socket.addEventListener('open', handleSocketOpen)
+    // if (hubConnection.state !== signalR.HubConnectionState.Connected) {
+    //   hubConnection.start().then(() => {
+    //     if (hubConnection.state === signalR.HubConnectionState.Connected) {
+    //       sendPendingMessage().catch(console.error)
+    //     }
+    //   })
+    // }
+    // }
 
     scrollToBottom()
-
-    return () => {
-      hubConnection?.off('StreamMessage', handleStreamMessage)
-    }
-  }, [
-    clearPendingMessage,
-    conversationId,
-    createMessageAsync,
-    getAccessTokenSilently,
-    handleStreamMessage,
-    queryClient,
-    queryKey,
-    setSelectedConversationId,
-    hubConnection,
-    pendingMessage
-  ])
+  }, [conversationId, setSelectedConversationId])
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null)
   const scrollToBottom = () => {
@@ -244,7 +287,7 @@ const ViewConversation = () => {
         {isSuccess ? renderMessages(data) : null}
         <div ref={messagesEndRef}></div>
       </div>
-      <UserInput onSubmit={handleMessageSubmit} isBusy={isCreatingMessage} />
+      <UserInput onSubmit={handleMessageSubmit} isBusy={isBusy} />
     </>
   )
 }
@@ -291,4 +334,4 @@ function renderMessages(data: ListMessagesResponse | undefined) {
   )
 }
 
-export default memo(ViewConversation)
+export default ViewConversation
