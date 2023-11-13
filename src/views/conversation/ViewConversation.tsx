@@ -23,8 +23,8 @@ import {
   useQueryClient
 } from 'react-query'
 import { Link, useParams } from 'react-router-dom'
-import { useWebSocketContext } from '@/context/WebSocketContext'
 import logger from '@/helpers/logger'
+import { useWebSocketContext } from '@/context/WebSocketContext'
 
 type StreamMessageRequest = {
   streamId: string
@@ -169,7 +169,7 @@ const ViewConversation = () => {
     })
   }
 
-  const { getSocket } = useWebSocketContext()
+  const { emitter } = useWebSocketContext()
 
   const handleStreamMessage = useCallback(
     (m: StreamMessageRequest) => {
@@ -217,8 +217,8 @@ const ViewConversation = () => {
   const { setSelectedConversationId } = useAppState()
 
   const handleSocketMessage = useCallback(
-    (e: Event) => {
-      const m: StreamMessageRequest = JSON.parse((e as MessageEvent).data)
+    (e: MessageEvent) => {
+      const m: StreamMessageRequest = JSON.parse(e.data)
       logger.debug(m, 'Received message from socket')
       handleStreamMessage(m)
     },
@@ -226,16 +226,11 @@ const ViewConversation = () => {
   )
 
   useEffect(() => {
-    const socket = getSocket()
-    if (!socket) return
-    socket.addEventListener('message', handleSocketMessage)
-    logger.info('listener handleSocketMessage attached')
-
+    emitter.on('onMessage', handleSocketMessage)
     return () => {
-      logger.info('listener handleSocketMessage detached')
-      getSocket()?.removeEventListener('message', handleSocketMessage)
+      emitter.off('onMessage', handleSocketMessage)
     }
-  }, [handleSocketMessage, getSocket])
+  }, [emitter, handleSocketMessage])
 
   useEffect(() => {
     setSelectedConversationId(conversationId)

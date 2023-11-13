@@ -47,6 +47,8 @@ import {
 } from './api/conversationApi'
 import WebSocketContextProvider from '@/context/WebSocketContext'
 
+// import WebSocketContextProvider from '@/context/WebSocketContext'
+
 function App() {
   const authenticatedApi = useAuthenticatedApi()
 

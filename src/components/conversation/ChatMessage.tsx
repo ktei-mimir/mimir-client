@@ -68,7 +68,7 @@ const ChatMessage = (props: MessageProps) => {
                 <div className="flex flex-row">
                   <Spinner className="self-center" />
                   <button
-                    className="ml-2 rounded bg-zinc-400 px-4 py-1 font-semibold text-gray-800 shadow hover:bg-zinc-500"
+                    className="ml-2 rounded bg-gray-100 px-4 py-1 font-semibold text-gray-800 shadow hover:bg-zinc-300"
                     onClick={handlePauseClick}
                   >
                     Pause
