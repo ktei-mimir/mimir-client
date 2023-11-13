@@ -19,6 +19,7 @@
     "isomorphic-dompurify": "^1.2.0",
     "jotai": "^2.0.3",
     "marked": "^4.3.0",
+    "pino": "^8.16.1",
     "preline": "^1.7.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

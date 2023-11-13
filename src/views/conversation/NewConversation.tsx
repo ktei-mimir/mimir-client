@@ -1,15 +1,15 @@
-// import logoUrl from '@/assets/yggdrasil.png'
 import { createConversation } from '@/api/conversationApi'
 import Logo from '@/components/common/Logo'
 import UserInput from '@/components/conversation/UserInput'
-import usePendingMessage from '@/components/conversation/conversationStore'
 import { useGlobalAlertActionsContext } from '@/context/GlobalAlertContext'
 import { handleApiError } from '@/helpers/apiErrorHandler'
 import useAuthenticatedApi from '@/hooks/useAuthenticatedApi'
 import useAppState from '@/store/appStateStore'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useMutation, useQueryClient } from 'react-query'
 import { useNavigate } from 'react-router-dom'
+import { createMessage } from '@/api/messageApi'
+import { randomUUID } from '@/helpers/stringUtils'
 
 const NewConversation = () => {
   const queryClient = useQueryClient()
@@ -22,20 +22,28 @@ const NewConversation = () => {
 
   const navigate = useNavigate()
 
-  const { setPendingMessage } = usePendingMessage()
+  // const { setPendingMessage } = usePendingMessage()
   const { setError } = useGlobalAlertActionsContext()
 
   const { setSelectedConversationId } = useAppState()
+  const [isBusy, setIsBusy] = useState(false)
 
   const handleMessageSubmit = async (message: string) => {
     setError(undefined)
+    setIsBusy(true)
     await createConversationMutation.mutateAsync(message, {
       onError: error => {
         handleApiError(error, setError)
+        setIsBusy(false)
       },
-      onSuccess: response => {
-        queryClient.invalidateQueries('conversations')
-        setPendingMessage(message)
+      onSuccess: async response => {
+        await queryClient.invalidateQueries('conversations')
+        await createMessage(authenticatedApi, {
+          streamId: randomUUID(),
+          conversationId: response.data.id,
+          content: message
+        })
+        setIsBusy(false)
         navigate(`/conversation/${response.data.id}`)
       }
     })
@@ -58,10 +66,7 @@ const NewConversation = () => {
           </p>
         </div>
       </div>
-      <UserInput
-        onSubmit={handleMessageSubmit}
-        isBusy={createConversationMutation.isLoading}
-      />
+      <UserInput onSubmit={handleMessageSubmit} isBusy={isBusy} />
     </>
   )
 }

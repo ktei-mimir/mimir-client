@@ -8,17 +8,14 @@ import {
 import Spinner from '@/components/common/Spinner'
 import ChatMessage from '@/components/conversation/ChatMessage'
 import UserInput from '@/components/conversation/UserInput'
-import usePendingMessage from '@/components/conversation/conversationStore'
 import { useGlobalAlertActionsContext } from '@/context/GlobalAlertContext'
 import { handleApiError } from '@/helpers/apiErrorHandler'
 import dateUtils from '@/helpers/dateUtils'
 import { randomUUID } from '@/helpers/stringUtils'
 import useAuthenticatedApi from '@/hooks/useAuthenticatedApi'
 import useAppState from '@/store/appStateStore'
-// import { useAuth0 } from '@auth0/auth0-react'
-// import * as signalR from '@microsoft/signalr'
 import produce from 'immer'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import {
   QueryFunction,
   useMutation,
@@ -27,11 +24,13 @@ import {
 } from 'react-query'
 import { Link, useParams } from 'react-router-dom'
 import { useWebSocketContext } from '@/context/WebSocketContext'
+import logger from '@/helpers/logger'
 
 type StreamMessageRequest = {
   streamId: string
   conversationId: string
-  content: string
+  content?: string
+  stop?: boolean
 }
 
 const appendMessages = (
@@ -45,14 +44,20 @@ const appendMessages = (
 const streamMessage = (
   conversation: ListMessagesResponse,
   streamId: string,
-  content: string
+  content?: string,
+  stop?: boolean
 ) =>
   produce(conversation, draft => {
     const messageToStream = draft.items.find(m => m.streamId === streamId)
     if (!messageToStream) {
       return
     }
-    messageToStream.content = content
+    if (stop) {
+      delete messageToStream.streamId
+      return
+    } else if (content) {
+      messageToStream.content = content
+    }
   })
 
 const ViewConversation = () => {
@@ -87,62 +92,55 @@ const ViewConversation = () => {
     }
   )
 
-  const [isBusy, setIsBusy] = useState(false)
+  const { mutateAsync: createMessageAsync, isLoading: isCreatingMessage } =
+    useMutation(
+      'createMessage',
+      (request: CreateMessageRequest) =>
+        createMessage(authenticatedApi, request),
+      {
+        onMutate: async (request: CreateMessageRequest) => {
+          setError()
+          await queryClient.cancelQueries(queryKey)
 
-  const {
-    mutateAsync: createMessageAsync
-    // isLoading: isCreatingMessage,
-  } = useMutation(
-    'createMessage',
-    (request: CreateMessageRequest) => createMessage(authenticatedApi, request),
-    {
-      onMutate: async (request: CreateMessageRequest) => {
-        setError()
-        setIsBusy(true)
-        await queryClient.cancelQueries(queryKey)
+          return queryClient.setQueryData<ListMessagesResponse>(
+            queryKey,
+            oldData => {
+              const userMessage: Message = {
+                content: request.content,
+                role: 'user',
+                createdAt: dateUtils.getUtcNowTicks()
+              }
+              const assistantMessage: Message = {
+                streamId: request.streamId,
+                role: 'assistant',
 
-        return queryClient.setQueryData<ListMessagesResponse>(
-          queryKey,
-          oldData => {
-            const userMessage: Message = {
-              content: request.content,
-              role: 'user',
-              createdAt: dateUtils.getUtcNowTicks()
+                // force the assistant message to be after the user message
+                createdAt: dateUtils.getUtcNowTicks() + 1
+              }
+              return appendMessages(
+                oldData ?? { items: [] },
+                userMessage,
+                assistantMessage
+              )
             }
-            const assistantMessage: Message = {
-              streamId: request.streamId,
-              role: 'assistant',
-
-              // force the assistant message to be after the user message
-              createdAt: dateUtils.getUtcNowTicks() + 1
-            }
-            return appendMessages(
-              oldData ?? { items: [] },
-              userMessage,
-              assistantMessage
-            )
+          )
+        },
+        onError: (err, variables, context?: ListMessagesResponse) => {
+          if (context) {
+            queryClient.setQueryData(queryKey, context)
           }
-        )
-      },
-      onError: (err, variables, context?: ListMessagesResponse) => {
-        if (context) {
-          queryClient.setQueryData(queryKey, context)
+          handleApiError(
+            err,
+            setError,
+            'There was a problem with processing your message. Please try again later.'
+          )
+        },
+        onSettled: async () => {
+          await queryClient.invalidateQueries(queryKey)
+          // setIsBusy(false)
         }
-        handleApiError(
-          err,
-          setError,
-          'There was a problem with processing your message. Please try again later.'
-        )
-      },
-      onSettled: async () => {
-        await queryClient.invalidateQueries(queryKey)
-        setIsBusy(false)
       }
-    }
-  )
-
-  // const [socket, setSocket] = useState<WebSocket>()
-  const pendingMessageSent = useRef(false)
+    )
 
   const handleMessageSubmit = async (message: string) => {
     await createMessageAsync({
@@ -152,32 +150,32 @@ const ViewConversation = () => {
     })
   }
 
-  const { pendingMessage, clearPendingMessage } = usePendingMessage()
-
-  // const { getAccessTokenSilently } = useAuth0()
   const { socket } = useWebSocketContext()
 
   const handleStreamMessage = useCallback(
     (m: StreamMessageRequest) => {
       if (m.conversationId !== conversationId) {
-        console.warn(
-          'ConversationId not matched',
-          m.conversationId,
-          conversationId
+        logger.warn(
+          {
+            conversationId: m.conversationId,
+            expectedConversationId: conversationId
+          },
+          'ConversationId not matched'
         )
         return
       }
       let currentConversation =
         queryClient.getQueryData<ListMessagesResponse>(queryKey)
       if (!currentConversation) {
-        console.warn('No current conversation found', conversationId)
+        logger.warn({ queryKey }, 'No current conversation found')
         return
       }
 
       currentConversation = streamMessage(
         currentConversation,
         m.streamId,
-        m.content
+        m.content,
+        m.stop
       )
       queryClient.setQueryData(queryKey, currentConversation)
       scrollToBottom()
@@ -185,90 +183,48 @@ const ViewConversation = () => {
     [conversationId, queryClient, queryKey]
   )
 
+  const handlePauseStream = useCallback(
+    (streamId: string) => {
+      let currentConversation =
+        queryClient.getQueryData<ListMessagesResponse>(queryKey)
+      if (!currentConversation) {
+        return
+      }
+      currentConversation = streamMessage(
+        currentConversation,
+        streamId,
+        undefined,
+        true
+      )
+      queryClient.setQueryData(queryKey, currentConversation)
+    },
+    [queryClient, queryKey]
+  )
+
   const { setSelectedConversationId } = useAppState()
 
   const handleSocketMessage = useCallback(
     (e: Event) => {
       const m: StreamMessageRequest = JSON.parse((e as MessageEvent).data)
-      console.log(m.content)
+      logger.debug(m, 'Received message from socket')
       handleStreamMessage(m)
     },
     [handleStreamMessage]
   )
 
-  const sendPendingMessage = useCallback(async () => {
-    if (pendingMessageSent.current) return
-    if (!conversationId) return
-    const messageToCreate = pendingMessage.trim()
-    if (pendingMessage.length === 0) {
-      return
-    }
-    await createMessageAsync({
-      streamId: randomUUID(),
-      conversationId: conversationId,
-      content: messageToCreate
-    })
-    clearPendingMessage()
-  }, [clearPendingMessage, conversationId, createMessageAsync, pendingMessage])
-
-  // const handleSocketOpen = useCallback(() => {
-  //   console.log('socket opened')
-  // }, [])
-
-  // useEffect(() => {
-  //   // buildConnection(getAccessTokenSilently).then(socket => {
-  //   //   socket.addEventListener('open', handleSocketOpen)
-  //   // })
-  //   if (!socket) return
-  //   socket.addEventListener('open', handleSocketOpen)
-  // }, [handleSocketOpen, socket])
-
   useEffect(() => {
     if (!socket) return
-    // socket.removeEventListener('message', handleSocketMessage)
     socket.addEventListener('message', handleSocketMessage)
-    console.log('handleSocketMessage mounted')
+    logger.info('listener handleSocketMessage attached')
 
     return () => {
-      console.log('handleSocketMessage unmounted')
-      // socket?.removeEventListener('open', handleSocketOpen)
+      logger.info('listener handleSocketMessage detached')
       socket?.removeEventListener('message', handleSocketMessage)
-      // hubConnection?.off('StreamMessage', handleStreamMessage)
     }
   }, [handleSocketMessage, socket])
 
   useEffect(() => {
-    sendPendingMessage().catch(console.log)
-    pendingMessageSent.current = true
-  }, [sendPendingMessage])
-
-  useEffect(() => {
     setSelectedConversationId(conversationId)
-
-    // async function sendPendingMessage() {
-    //   if (!conversationId) return
-    //   const messageToCreate = pendingMessage.trim()
-    //   if (pendingMessage.length === 0) {
-    //     return
-    //   }
-    //   clearPendingMessage()
-    //   await createMessageAsync({
-    //     streamId: randomUUID(),
-    //     conversationId: conversationId,
-    //     content: messageToCreate
-    //   })
-    // }
-
-    // if (socket) {
-    // socket.addEventListener('open', handleSocketOpen)
-    // if (hubConnection.state !== signalR.HubConnectionState.Connected) {
-    //   hubConnection.start().then(() => {
-    //     if (hubConnection.state === signalR.HubConnectionState.Connected) {
-    //       sendPendingMessage().catch(console.error)
-    //     }
-    //   })
-    // }
-    // }
 
     scrollToBottom()
   }, [conversationId, setSelectedConversationId])
@@ -284,15 +240,18 @@ const ViewConversation = () => {
         {isLoading && !isError ? (
           <Spinner className="mt-5 self-center" />
         ) : null}
-        {isSuccess ? renderMessages(data) : null}
+        {isSuccess ? renderMessages(data, handlePauseStream) : null}
         <div ref={messagesEndRef}></div>
       </div>
-      <UserInput onSubmit={handleMessageSubmit} isBusy={isBusy} />
+      <UserInput onSubmit={handleMessageSubmit} isBusy={isCreatingMessage} />
     </>
   )
 }
 
-function renderMessages(data: ListMessagesResponse | undefined) {
+function renderMessages(
+  data: ListMessagesResponse | undefined,
+  handlePauseStream?: (streamId: string) => void
+) {
   if (data === undefined) return null
   if (data.items.length === 0)
     return (
@@ -328,6 +287,9 @@ function renderMessages(data: ListMessagesResponse | undefined) {
           key={`${message.role}:${message.createdAt}`}
           text={message.content}
           role={message.role}
+          isStreaming={!!message.streamId}
+          streamId={message.streamId}
+          onPause={handlePauseStream}
         />
       ))}
     </ul>

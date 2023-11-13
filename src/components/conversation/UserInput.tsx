@@ -1,5 +1,5 @@
 import Spinner from '@/components/common/Spinner'
-import React, { useState } from 'react'
+import React, { memo, useState } from 'react'
 
 type UserInputProps = {
   onSubmit?: (message: string) => void
@@ -99,4 +99,4 @@ const UserInput = (props: UserInputProps) => {
   )
 }
 
-export default UserInput
+export default memo(UserInput)
