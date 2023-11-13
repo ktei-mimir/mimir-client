@@ -35,7 +35,13 @@ const ChatMessage = (props: MessageProps) => {
     hljs.configure({
       ignoreUnescapedHTML: true
     })
-    hljs.highlightAll()
+  }, [])
+
+  useEffect(() => {
+    document.querySelectorAll('pre code').forEach(el => {
+      if ((el as HTMLElement).dataset.highlighted) return
+      hljs.highlightElement(el as HTMLElement)
+    })
   }, [props.text])
 
   const { streamId, onPause } = props
@@ -71,7 +77,7 @@ const ChatMessage = (props: MessageProps) => {
                     className="ml-2 rounded bg-gray-100 px-4 py-1 font-semibold text-gray-800 shadow hover:bg-zinc-300"
                     onClick={handlePauseClick}
                   >
-                    Pause
+                    Stop
                   </button>
                 </div>
               </div>

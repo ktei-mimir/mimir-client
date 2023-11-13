@@ -43,7 +43,7 @@ const appendMessages = (
 
 const canRefetch = (d: ListMessagesResponse | undefined) => {
   if (!d) return true
-  return d.items?.every(m => !m.streamId) ?? true
+  return d.items?.every(m => !m.streamId) === true
 }
 
 const streamMessage = (
