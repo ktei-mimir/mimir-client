@@ -11,7 +11,7 @@ type Props = {
 }
 
 type WebSocketValues = {
-  socket: WebSocketLike | null
+  getSocket: () => WebSocketLike | null
 }
 
 const [useWebSocketContext, WebSocketContext] =
@@ -21,7 +21,7 @@ export { useWebSocketContext }
 
 const WebSocketContextProvider = (props: Props) => {
   const { children } = props
-  const [state, setState] = useState<WebSocketValues>({ socket: null })
+  const [state, setState] = useState<WebSocketValues>({ getSocket: () => null })
   const { getAccessTokenSilently } = useAuth0()
 
   const getSocketUrl = useCallback(async () => {
@@ -33,8 +33,14 @@ const WebSocketContextProvider = (props: Props) => {
     onOpen: () => {
       logger.info('websocket connected')
       setState({
-        socket: getWebSocket()
+        getSocket: getWebSocket
       })
+    },
+    onClose: () => {
+      logger.info('websocket disconnected')
+      // setState({
+      //   socket: () => null
+      // })
     },
     shouldReconnect: () => true,
     reconnectAttempts: 10,

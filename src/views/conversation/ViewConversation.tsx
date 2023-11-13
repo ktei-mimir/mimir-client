@@ -169,7 +169,7 @@ const ViewConversation = () => {
     })
   }
 
-  const { socket } = useWebSocketContext()
+  const { getSocket } = useWebSocketContext()
 
   const handleStreamMessage = useCallback(
     (m: StreamMessageRequest) => {
@@ -226,15 +226,16 @@ const ViewConversation = () => {
   )
 
   useEffect(() => {
+    const socket = getSocket()
     if (!socket) return
     socket.addEventListener('message', handleSocketMessage)
     logger.info('listener handleSocketMessage attached')
 
     return () => {
       logger.info('listener handleSocketMessage detached')
-      socket?.removeEventListener('message', handleSocketMessage)
+      getSocket()?.removeEventListener('message', handleSocketMessage)
     }
-  }, [handleSocketMessage, socket])
+  }, [handleSocketMessage, getSocket])
 
   useEffect(() => {
     setSelectedConversationId(conversationId)
