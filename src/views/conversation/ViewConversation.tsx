@@ -29,7 +29,7 @@ import logger from '@/helpers/logger'
 type StreamMessageRequest = {
   streamId: string
   conversationId: string
-  content?: string
+  chunk?: string
   stop?: boolean
 }
 
@@ -41,13 +41,18 @@ const appendMessages = (
     messages.forEach(m => draft.items.push(m))
   })
 
+const canRefetch = (d: ListMessagesResponse | undefined) => {
+  if (!d) return true
+  return d.items?.every(m => !m.streamId) ?? true
+}
+
 const streamMessage = (
-  conversation: ListMessagesResponse,
+  messages: ListMessagesResponse,
   streamId: string,
-  content?: string,
+  chunk?: string,
   stop?: boolean
 ) =>
-  produce(conversation, draft => {
+  produce(messages, draft => {
     const messageToStream = draft.items.find(m => m.streamId === streamId)
     if (!messageToStream) {
       return
@@ -55,8 +60,8 @@ const streamMessage = (
     if (stop) {
       delete messageToStream.streamId
       return
-    } else if (content) {
-      messageToStream.content = content
+    } else if (chunk) {
+      messageToStream.content += chunk
     }
   })
 
@@ -75,10 +80,25 @@ const ViewConversation = () => {
     return await listMessages(authenticatedApi, conversationId)
   }
 
+  const refreshInterval = 5 * 60 * 1000 // ms
+
   const { data, isLoading, isSuccess, isError, error } = useQuery(
     queryKey,
     fetchMessages,
     {
+      refetchInterval: (d: ListMessagesResponse | undefined) => {
+        return canRefetch(d) ? refreshInterval : false
+      },
+      refetchOnWindowFocus: () => {
+        return canRefetch(
+          queryClient.getQueryData<ListMessagesResponse>(queryKey)
+        )
+      },
+      refetchOnMount: () => {
+        return canRefetch(
+          queryClient.getQueryData<ListMessagesResponse>(queryKey)
+        )
+      },
       onSuccess: () => {
         setError()
       },
@@ -137,7 +157,6 @@ const ViewConversation = () => {
         },
         onSettled: async () => {
           await queryClient.invalidateQueries(queryKey)
-          // setIsBusy(false)
         }
       }
     )
@@ -164,20 +183,14 @@ const ViewConversation = () => {
         )
         return
       }
-      let currentConversation =
-        queryClient.getQueryData<ListMessagesResponse>(queryKey)
-      if (!currentConversation) {
+      let messages = queryClient.getQueryData<ListMessagesResponse>(queryKey)
+      if (!messages) {
         logger.warn({ queryKey }, 'No current conversation found')
         return
       }
 
-      currentConversation = streamMessage(
-        currentConversation,
-        m.streamId,
-        m.content,
-        m.stop
-      )
-      queryClient.setQueryData(queryKey, currentConversation)
+      messages = streamMessage(messages, m.streamId, m.chunk, m.stop)
+      queryClient.setQueryData(queryKey, messages)
       scrollToBottom()
     },
     [conversationId, queryClient, queryKey]
