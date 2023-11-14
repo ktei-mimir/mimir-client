@@ -6,6 +6,10 @@ export type Conversation = {
 }
 
 export type ListConversationsResponse = {
+  cost: {
+    total: number
+    unit: 'USD' | 'AUD'
+  }
   items: Conversation[]
 }
 
