@@ -23,7 +23,6 @@ const NewConversation = () => {
 
   const navigate = useNavigate()
 
-  // const { setPendingMessage } = usePendingMessage()
   const { setError } = useGlobalAlertActionsContext()
 
   const { setSelectedConversationId } = useAppState()

@@ -47,8 +47,6 @@ import {
 } from './api/conversationApi'
 import WebSocketContextProvider from '@/context/WebSocketContext'
 
-// import WebSocketContextProvider from '@/context/WebSocketContext'
-
 function App() {
   const authenticatedApi = useAuthenticatedApi()
 
@@ -57,18 +55,6 @@ function App() {
       return await listConversations(authenticatedApi)
     })
 
-  // useEffect(() => {
-  //   const getToken = async () => {
-  //     const token = await getAccessTokenSilently({
-  //       authorizationParams: {
-  //         audience: `https://api.mimir`,
-  //         scope: 'write:chatgpt'
-  //       }
-  //     })
-  //     setToken(token)
-  //   }
-  //   getToken()
-  // }, [getAccessTokenSilently])
   return (
     <div className="h-full font-primary">
       <Router>
