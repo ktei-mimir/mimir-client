@@ -69,6 +69,11 @@ const ChatMessage = (props: MessageProps) => {
         >
           <div className="flex-col">
             {props.text ? renderText(props.text, props.role) : null}
+            {props.streamId && !props.isStreaming ? (
+              <div className="flex w-full justify-center">
+                <Spinner className="self-center" />
+              </div>
+            ) : null}
             {props.isStreaming ? (
               <div className="mt-2 flex w-full justify-center">
                 <div className="flex flex-row">

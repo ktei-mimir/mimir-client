@@ -24,7 +24,7 @@ import {
 } from 'react-query'
 import { Link, useParams } from 'react-router-dom'
 import logger from '@/helpers/logger'
-import { useWebSocketContext } from '@/context/WebSocketContext'
+import { emitter, useWebSocketContext } from '@/context/WebSocketContext'
 
 type StreamMessageRequest = {
   streamId: string
@@ -43,7 +43,8 @@ const appendMessages = (
 
 const canRefetch = (d: ListMessagesResponse | undefined) => {
   if (!d) return true
-  return d.items?.every(m => !m.streamId) === true
+  // make sure no message is streaming
+  return d.items?.every(m => !m.isStreaming) === true
 }
 
 const streamMessage = (
@@ -59,9 +60,11 @@ const streamMessage = (
     }
     if (stop) {
       delete messageToStream.streamId
+      messageToStream.isStreaming = false
       return
     } else if (chunk) {
       messageToStream.content += chunk
+      messageToStream.isStreaming = true
     }
   })
 
@@ -161,15 +164,16 @@ const ViewConversation = () => {
       }
     )
 
+  const { connectionId } = useWebSocketContext()
+
   const handleMessageSubmit = async (message: string) => {
     await createMessageAsync({
       streamId: randomUUID(),
       conversationId: conversationId,
-      content: message
+      content: message,
+      connectionId
     })
   }
-
-  const { emitter } = useWebSocketContext()
 
   const handleStreamMessage = useCallback(
     (m: StreamMessageRequest) => {
@@ -218,8 +222,13 @@ const ViewConversation = () => {
 
   const handleSocketMessage = useCallback(
     (e: MessageEvent) => {
-      const m: StreamMessageRequest = JSON.parse(e.data)
-      logger.debug(m, 'Received message from socket')
+      // TODO: this is weakly typed, fix it
+      const payload = JSON.parse(e.data)
+      if (payload.action !== 'streamCompletion') {
+        return
+      }
+      const m = payload as StreamMessageRequest
+      // logger.debug(m, 'Received message from socket')
       handleStreamMessage(m)
     },
     [handleStreamMessage]
@@ -230,7 +239,7 @@ const ViewConversation = () => {
     return () => {
       emitter.off('onMessage', handleSocketMessage)
     }
-  }, [emitter, handleSocketMessage])
+  }, [handleSocketMessage])
 
   useEffect(() => {
     setSelectedConversationId(conversationId)
@@ -296,7 +305,7 @@ function renderMessages(
           key={`${message.role}:${message.createdAt}`}
           text={message.content}
           role={message.role}
-          isStreaming={!!message.streamId}
+          isStreaming={message.isStreaming === true}
           streamId={message.streamId}
           onPause={handlePauseStream}
         />

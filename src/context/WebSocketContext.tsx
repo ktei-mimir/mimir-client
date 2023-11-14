@@ -1,10 +1,10 @@
 import { contextFactory } from '@/helpers/contextFactory'
 
-import { ReactNode, useCallback, useMemo } from 'react'
+import { ReactNode, useCallback, useMemo, useState } from 'react'
 import useWebSocket from 'react-use-websocket'
 import { useAuth0 } from '@auth0/auth0-react'
 import logger from '@/helpers/logger'
-import mitt, { Emitter } from 'mitt'
+import mitt from 'mitt'
 
 type Props = {
   children?: ReactNode
@@ -15,8 +15,10 @@ export type OnMessageEvent = {
 }
 
 type WebSocketValues = {
-  emitter: Emitter<OnMessageEvent>
+  connectionId?: string
 }
+
+export const emitter = mitt<OnMessageEvent>()
 
 const [useWebSocketContext, WebSocketContext] =
   contextFactory<WebSocketValues>()
@@ -25,7 +27,6 @@ export { useWebSocketContext }
 
 const WebSocketContextProvider = (props: Props) => {
   const { children } = props
-  const emitter = mitt<OnMessageEvent>()
   const { getAccessTokenSilently } = useAuth0()
 
   const getSocketUrl = useCallback(async () => {
@@ -33,9 +34,20 @@ const WebSocketContextProvider = (props: Props) => {
     return `wss://mimir-chat-socket.disasterdev.net/prod/?token=${token}`
   }, [getAccessTokenSilently])
 
+  const [state, setState] = useState<WebSocketValues>({})
+
   useWebSocket(getSocketUrl, {
     share: true,
     onMessage: event => {
+      logger.info(event.data, 'websocket message received')
+      const payload = JSON.parse(event.data)
+      if (payload.action === 'notifyConnectionId') {
+        logger.info(`websocket connectionId received: ${payload.connectionId}`)
+        setState({
+          ...state,
+          connectionId: payload.connectionId
+        })
+      }
       emitter.emit('onMessage', event)
     },
     onOpen: () => {
@@ -53,9 +65,9 @@ const WebSocketContextProvider = (props: Props) => {
       Math.min(Math.pow(2, attemptNumber) * 1000, 10000)
   })
 
-  const values = useMemo(() => ({ emitter }), [emitter])
+  const values = useMemo(() => state ?? {}, [state])
   return (
-    <WebSocketContext.Provider value={values ?? { emitter }}>
+    <WebSocketContext.Provider value={values ?? {}}>
       {children}
     </WebSocketContext.Provider>
   )

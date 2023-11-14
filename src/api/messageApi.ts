@@ -7,6 +7,7 @@ export type Message = {
   role: Role
   content?: string
   createdAt: number
+  isStreaming?: boolean
 }
 
 export type ListMessagesResponse = {
@@ -17,6 +18,7 @@ export type CreateMessageRequest = {
   streamId: string
   conversationId: string
   content: string
+  connectionId?: string
 }
 
 export type CreateMessageResponse = {

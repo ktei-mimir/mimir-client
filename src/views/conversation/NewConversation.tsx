@@ -10,6 +10,7 @@ import { useMutation, useQueryClient } from 'react-query'
 import { useNavigate } from 'react-router-dom'
 import { createMessage } from '@/api/messageApi'
 import { randomUUID } from '@/helpers/stringUtils'
+import { useWebSocketContext } from '@/context/WebSocketContext'
 
 const NewConversation = () => {
   const queryClient = useQueryClient()
@@ -27,6 +28,7 @@ const NewConversation = () => {
 
   const { setSelectedConversationId } = useAppState()
   const [isBusy, setIsBusy] = useState(false)
+  const { connectionId } = useWebSocketContext()
 
   const handleMessageSubmit = async (message: string) => {
     setError(undefined)
@@ -41,7 +43,8 @@ const NewConversation = () => {
         await createMessage(authenticatedApi, {
           streamId: randomUUID(),
           conversationId: response.data.id,
-          content: message
+          content: message,
+          connectionId
         })
         setIsBusy(false)
         navigate(`/conversation/${response.data.id}`)
