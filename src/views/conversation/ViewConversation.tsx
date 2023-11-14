@@ -24,7 +24,11 @@ import {
 } from 'react-query'
 import { Link, useParams } from 'react-router-dom'
 import logger from '@/helpers/logger'
-import { emitter, useWebSocketContext } from '@/context/WebSocketContext'
+import {
+  emitter,
+  SocketMessage,
+  useWebSocketContext
+} from '@/context/WebSocketContext'
 
 type StreamMessageRequest = {
   streamId: string
@@ -221,14 +225,11 @@ const ViewConversation = () => {
   const { setSelectedConversationId } = useAppState()
 
   const handleSocketMessage = useCallback(
-    (e: MessageEvent) => {
-      // TODO: this is weakly typed, fix it
-      const payload = JSON.parse(e.data)
+    (payload: SocketMessage) => {
       if (payload.action !== 'streamCompletion') {
         return
       }
-      const m = payload as StreamMessageRequest
-      // logger.debug(m, 'Received message from socket')
+      const m = payload as unknown as StreamMessageRequest
       handleStreamMessage(m)
     },
     [handleStreamMessage]

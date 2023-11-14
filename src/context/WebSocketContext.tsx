@@ -10,8 +10,13 @@ type Props = {
   children?: ReactNode
 }
 
+export type SocketMessage = {
+  action: string
+  [key: string]: unknown
+}
+
 export type OnMessageEvent = {
-  onMessage: MessageEvent
+  onMessage: SocketMessage
 }
 
 type WebSocketValues = {
@@ -40,15 +45,19 @@ const WebSocketContextProvider = (props: Props) => {
     share: true,
     onMessage: event => {
       logger.info(event.data, 'websocket message received')
-      const payload = JSON.parse(event.data)
+      const payload = JSON.parse(event.data) as SocketMessage
       if (payload.action === 'notifyConnectionId') {
         logger.info(`websocket connectionId received: ${payload.connectionId}`)
-        setState({
-          ...state,
-          connectionId: payload.connectionId
-        })
+        if (typeof payload.connectionId === 'string') {
+          setState({
+            ...state,
+            connectionId: payload.connectionId
+          })
+        } else {
+          throw new Error('connectionId must be a string')
+        }
       }
-      emitter.emit('onMessage', event)
+      emitter.emit('onMessage', payload)
     },
     onOpen: () => {
       logger.info('websocket connected')
