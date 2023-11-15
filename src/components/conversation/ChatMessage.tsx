@@ -67,7 +67,7 @@ const ChatMessage = (props: MessageProps) => {
             'ml-2 flex-1 overflow-x-auto whitespace-pre-wrap p-3 text-base text-gray-700 shadow-sm dark:text-gray-200',
             {
               'shadow-sm dark:bg-zinc-700': isUser,
-              'bg-gray-50 dark:bg-slate-700': !isUser
+              'bg-gray-100 shadow-sm dark:bg-slate-700': !isUser
             }
           )}
         >
