@@ -33,7 +33,7 @@ const ColorModeSwitcherComponent = () => {
   }, [colorMode, setColorMode])
 
   return (
-    <label className="relative mb-5 cursor-pointer items-center sm:inline-flex">
+    <label className="relative mb-5 inline-flex cursor-pointer items-center">
       <input
         type="checkbox"
         value=""
@@ -61,31 +61,6 @@ function App() {
   const authenticatedApi = useAuthenticatedApi()
 
   const { colorMode } = useColorSchemeContext()
-  // const { setColorMode } = useColorSchemeActionsContext()
-  //
-  // const handleThemeChange = useCallback(() => {
-  //   const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
-  //   setColorMode(isDarkMode ? 'dark' : 'light')
-  // }, [setColorMode])
-  //
-  // useEffect(() => {
-  //   // Add event listener to watch for changes in the system's color scheme
-  //   window
-  //     .matchMedia('(prefers-color-scheme: dark)')
-  //     .addEventListener('change', handleThemeChange)
-  //
-  //   // Check the initial color scheme
-  //   if (!colorMode) {
-  //     handleThemeChange()
-  //   }
-  //
-  //   // Clean up the event listener
-  //   return () => {
-  //     window
-  //       .matchMedia('(prefers-color-scheme: dark)')
-  //       .removeEventListener('change', handleThemeChange)
-  //   }
-  // }, [colorMode, handleThemeChange, setColorMode])
 
   const { data, isLoading, isSuccess, isError } =
     useQuery<ListConversationsResponse>('conversations', async () => {
@@ -165,7 +140,7 @@ function App() {
                 </ul>
               ) : null}
             </div>
-            <div className="bg-black px-3 py-4 dark:bg-zinc-900">
+            <div className="flex flex-col bg-black px-3 py-4 dark:bg-zinc-900">
               <ColorModeSwitcher />
               <CostEstimate />
               <LogoutLink />
