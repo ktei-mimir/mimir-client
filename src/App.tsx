@@ -33,7 +33,7 @@ const ColorModeSwitcherComponent = () => {
   }, [colorMode, setColorMode])
 
   return (
-    <label className="relative mb-5 hidden cursor-pointer items-center sm:inline-flex">
+    <label className="relative mb-5 cursor-pointer items-center sm:inline-flex">
       <input
         type="checkbox"
         value=""
