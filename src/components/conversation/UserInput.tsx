@@ -49,9 +49,9 @@ const UserInput = (props: UserInputProps) => {
   return (
     <div
       className="sm:bg-vert-light-gradient absolute bottom-0 left-0 flex
-      w-full justify-center border-t border-zinc-700
-      bg-white
-      pt-2 dark:bg-zinc-800 sm:border-t-0 sm:border-transparent"
+      w-full justify-center border-t border-gray-100 bg-white
+      pt-2
+      dark:border-zinc-700 dark:bg-zinc-800 sm:border-t-0 sm:border-transparent"
     >
       <form
         className="stretch ml-2 flex w-full flex-row gap-3 last:mb-2 sm:mx-4 sm:max-w-5xl"
