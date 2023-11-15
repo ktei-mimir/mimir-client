@@ -8,7 +8,7 @@ const TerminalIcon = (props: React.SVGProps<SVGSVGElement>) => {
       viewBox="0 0 24 24"
       strokeWidth={1.5}
       stroke="currentColor"
-      className="h-7 w-7 text-zinc-200"
+      className="h-7 w-7 text-gray-400 dark:text-zinc-200"
       {...props}
     >
       <path

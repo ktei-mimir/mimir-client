@@ -11,9 +11,9 @@ function ViewConversationLink(props: { text: string; conversationId: string }) {
         to={`/conversation/${props.conversationId}`}
         className={isActive =>
           classnames(
-            'flex items-center p-2 text-gray-300 transition-colors hover:bg-slate-700',
+            'flex items-center p-2 text-gray-300 transition-colors hover:bg-white hover:text-gray-900 dark:hover:bg-slate-700 dark:hover:text-white',
             {
-              'bg-slate-700':
+              'bg-white text-gray-900 dark:bg-slate-700 dark:text-gray-300':
                 isActive && selectedConversationId === props.conversationId
             }
           )

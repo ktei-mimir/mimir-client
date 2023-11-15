@@ -7,7 +7,10 @@ function NewConversationLink(props: { text: string }) {
         to="/conversation"
         className="flex items-center p-2 font-medium
         text-white
-        transition-colors hover:bg-slate-700"
+        transition-colors
+        hover:bg-white
+        hover:text-gray-900
+        dark:hover:bg-slate-700 dark:hover:text-white"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"

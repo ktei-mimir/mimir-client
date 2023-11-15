@@ -1,10 +1,10 @@
 import { Role } from '@/api/messageApi'
 import Spinner from '@/components/common/Spinner'
-import { TerminalIcon, UserIcon } from '@/components/common/icons'
 import classnames from 'classnames'
 import hljs from 'highlight.js'
-import 'highlight.js/styles/atom-one-dark.css'
 import DOMPurify from 'isomorphic-dompurify'
+import { FaRegCircleUser } from 'react-icons/fa6'
+import { FaTerminal } from 'react-icons/fa'
 import { marked } from 'marked'
 import { memo, useCallback, useEffect } from 'react'
 
@@ -53,17 +53,21 @@ const ChatMessage = (props: MessageProps) => {
   }, [onPause, streamId])
 
   return (
-    <div className="sm:w-3xl mx-auto flex-1 pt-4 font-extralight text-gray-200 sm:max-w-3xl">
+    <div className="sm:w-3xl mx-auto flex-1 pt-4 font-extralight sm:max-w-3xl">
       <div className="flex flex-row">
-        <div className="collapse max-w-0 sm:visible sm:max-w-lg">
-          {isUser ? <UserIcon /> : <TerminalIcon />}
+        <div className="collapse max-w-0 text-gray-900 dark:text-gray-200 sm:visible sm:max-w-lg">
+          {isUser ? (
+            <FaRegCircleUser className="h-6 w-6 text-gray-400 dark:text-zinc-200" />
+          ) : (
+            <FaTerminal className="h-6 w-6 text-gray-400 dark:text-zinc-200" />
+          )}
         </div>
         <div
           className={classnames(
-            'ml-2 flex-1 overflow-x-auto whitespace-pre-wrap p-3 text-base shadow-sm',
+            'ml-2 flex-1 overflow-x-auto whitespace-pre-wrap p-3 text-base text-gray-700 shadow-sm dark:text-gray-200',
             {
-              'bg-zinc-700': isUser,
-              'bg-slate-700': !isUser
+              'shadow-sm dark:bg-zinc-700': isUser,
+              'bg-gray-50 dark:bg-slate-700': !isUser
             }
           )}
         >

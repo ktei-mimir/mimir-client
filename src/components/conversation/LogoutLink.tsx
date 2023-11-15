@@ -8,10 +8,11 @@ const LogoutLink = () => {
       href="#"
       className="flex items-center p-2
         text-white
-        transition-colors hover:bg-slate-700"
+        transition-colors
+        hover:bg-white hover:text-gray-900 dark:hover:bg-slate-700 dark:hover:text-white"
       onClick={e => {
         e.preventDefault()
-        logout({ logoutParams: { returnTo: window.location.origin } })
+        logout({ logoutParams: { returnTo: window.location.origin } }).then()
       }}
     >
       <svg

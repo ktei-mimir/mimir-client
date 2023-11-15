@@ -7,6 +7,7 @@ import 'preline'
 
 import App from './App'
 import './index.css'
+import ColorSchemeContextProvider from '@/context/ColorSchemeContext'
 
 const queryClient = new QueryClient()
 
@@ -23,7 +24,9 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
     >
       <QueryClientProvider client={queryClient}>
         <Secured>
-          <App />
+          <ColorSchemeContextProvider>
+            <App />
+          </ColorSchemeContextProvider>
         </Secured>
       </QueryClientProvider>
     </Auth0Provider>

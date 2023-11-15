@@ -1,35 +1,3 @@
-// const LoginButton = () => {
-//   const { loginWithRedirect } = useAuth0()
-//   return <button onClick={() => loginWithRedirect()}>Log In</button>
-// }
-// const LogoutButton = () => {
-//   const { logout } = useAuth0()
-//   return (
-//     <button
-//       onClick={() =>
-//         logout({ logoutParams: { returnTo: window.location.origin } })
-//       }
-//     >
-//       Log Out
-//     </button>
-//   )
-// }
-// const Profile = () => {
-//   const { user, isAuthenticated, isLoading } = useAuth0()
-//   if (isLoading) {
-//     return <div>Loading ...</div>
-//   }
-//   if (isAuthenticated && user) {
-//     return (
-//       <div>
-//         <img src={user.picture} alt={user.name} />
-//         <h2>{user.name}</h2>
-//         <p>{user.email}</p>
-//       </div>
-//     )
-//   }
-//   return null
-// }
 import NewConversationLink from '@/components/conversation/NewConversationLink'
 import ViewConversationLink from '@/components/conversation/ViewConversationLink'
 import useAuthenticatedApi from '@/hooks/useAuthenticatedApi'
@@ -47,17 +15,105 @@ import {
 } from './api/conversationApi'
 import WebSocketContextProvider from '@/context/WebSocketContext'
 import CostEstimate from '@/views/cost/CostEstimate'
+import {
+  useColorSchemeActionsContext,
+  useColorSchemeContext
+} from '@/context/ColorSchemeContext'
+import { memo, useCallback, useEffect } from 'react'
+import classnames from 'classnames'
+import dark from 'highlight.js/styles/atom-one-dark.css?raw'
+import light from 'highlight.js/styles/atom-one-light.css?raw'
+
+const ColorModeSwitcherComponent = () => {
+  const { colorMode } = useColorSchemeContext()
+  const { setColorMode } = useColorSchemeActionsContext()
+
+  const toggleColorMode = useCallback(() => {
+    setColorMode(colorMode === 'dark' ? 'light' : 'dark')
+  }, [colorMode, setColorMode])
+
+  return (
+    <label className="relative mb-5 hidden cursor-pointer items-center sm:inline-flex">
+      <input
+        type="checkbox"
+        value=""
+        className="peer sr-only"
+        onClick={toggleColorMode}
+      />
+      <div
+        className="dark:peer-focus:ring-zic-800 peer h-6 w-11 rounded-full bg-gray-200 after:absolute
+      after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border
+      after:border-gray-300 after:bg-white after:transition-all after:content-['']
+      peer-checked:bg-zinc-600 peer-checked:after:translate-x-full peer-checked:after:border-white
+      peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-zinc-800
+      rtl:peer-checked:after:-translate-x-full dark:border-gray-600 dark:bg-gray-700"
+      ></div>
+      <span className="drak:text-gray-400 ms-3 text-sm font-medium text-white">
+        {colorMode === 'dark' ? 'Dark' : 'Light'}
+      </span>
+    </label>
+  )
+}
+
+const ColorModeSwitcher = memo(ColorModeSwitcherComponent)
 
 function App() {
   const authenticatedApi = useAuthenticatedApi()
+
+  const { colorMode } = useColorSchemeContext()
+  // const { setColorMode } = useColorSchemeActionsContext()
+  //
+  // const handleThemeChange = useCallback(() => {
+  //   const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+  //   setColorMode(isDarkMode ? 'dark' : 'light')
+  // }, [setColorMode])
+  //
+  // useEffect(() => {
+  //   // Add event listener to watch for changes in the system's color scheme
+  //   window
+  //     .matchMedia('(prefers-color-scheme: dark)')
+  //     .addEventListener('change', handleThemeChange)
+  //
+  //   // Check the initial color scheme
+  //   if (!colorMode) {
+  //     handleThemeChange()
+  //   }
+  //
+  //   // Clean up the event listener
+  //   return () => {
+  //     window
+  //       .matchMedia('(prefers-color-scheme: dark)')
+  //       .removeEventListener('change', handleThemeChange)
+  //   }
+  // }, [colorMode, handleThemeChange, setColorMode])
 
   const { data, isLoading, isSuccess, isError } =
     useQuery<ListConversationsResponse>('conversations', async () => {
       return await listConversations(authenticatedApi)
     })
 
+  useEffect(() => {
+    const tagId = '__mimir_code_style__'
+    let styleTag = document.getElementById(tagId)
+    if (!styleTag) {
+      styleTag = document.createElement('style')
+      styleTag.id = tagId
+    }
+    document.head.appendChild(styleTag)
+    // Dynamically import the appropriate theme based on the dark mode state
+    if (colorMode === 'dark') {
+      styleTag.innerHTML = dark
+    } else {
+      styleTag.innerHTML = light
+    }
+  }, [colorMode])
+
   return (
-    <div className="h-full font-primary">
+    <div
+      className={classnames('h-full font-primary', {
+        dark: colorMode === 'dark'
+      })}
+    >
       <Router>
         <button
           type="button"
@@ -82,7 +138,7 @@ function App() {
             ></path>
           </svg>
         </button>
-        <div className="h-full">
+        <div className="h-full bg-white dark:bg-zinc-800">
           <div
             id="navigation-menu"
             className="hs-overlay scrollbar-y fixed bottom-0 left-0 top-0 z-[60] flex hidden
@@ -91,7 +147,7 @@ function App() {
           text-white transition-all duration-300 hs-overlay-open:translate-x-0 sm:bottom-0 sm:right-auto
           sm:flex sm:translate-x-0"
           >
-            <div className="grow overflow-y-auto bg-zinc-900 px-3 py-4">
+            <div className="grow overflow-y-auto bg-black px-3 py-4 dark:bg-zinc-900">
               {isError ? (
                 <p>There was a problem with fetching conversations</p>
               ) : null}
@@ -109,7 +165,8 @@ function App() {
                 </ul>
               ) : null}
             </div>
-            <div className="bg-zinc-900 px-3 py-4">
+            <div className="bg-black px-3 py-4 dark:bg-zinc-900">
+              <ColorModeSwitcher />
               <CostEstimate />
               <LogoutLink />
             </div>
@@ -147,4 +204,4 @@ function App() {
   )
 }
 
-export default App
+export default memo(App)
