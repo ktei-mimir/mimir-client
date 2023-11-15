@@ -8,7 +8,7 @@ const Logo = (props: React.SVGProps<SVGSVGElement>) => {
       height="192pt"
       viewBox="0 0 446.000000 538.000000"
       stroke="currentColor"
-      className="self-center text-slate-700"
+      className="self-center dark:text-slate-700"
       {...props}
     >
       <g

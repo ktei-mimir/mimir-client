@@ -50,7 +50,8 @@ const UserInput = (props: UserInputProps) => {
     <div
       className="sm:bg-vert-light-gradient absolute bottom-0 left-0 flex
       w-full justify-center border-t border-zinc-700
-      bg-zinc-800 pt-2 sm:border-t-0 sm:border-transparent"
+      bg-white
+      pt-2 dark:bg-zinc-800 sm:border-t-0 sm:border-transparent"
     >
       <form
         className="stretch ml-2 flex w-full flex-row gap-3 last:mb-2 sm:mx-4 sm:max-w-5xl"
@@ -68,22 +69,23 @@ const UserInput = (props: UserInputProps) => {
             onChange={onChange}
             onKeyDown={handleKeyDown}
             value={form.message}
-            className="mx-4 block w-full resize-none bg-zinc-700 p-2.5
-              text-base text-white
-              placeholder-gray-400 shadow
-              outline-none sm:max-h-36 sm:resize-y"
+            className="mx-4 block w-full resize-none p-2.5 text-base
+              text-gray-700 placeholder-gray-400
+              shadow
+              dark:bg-zinc-700 dark:text-white
+              dark:outline-none sm:max-h-36 sm:resize-y"
             placeholder="Your question..."
           ></textarea>
           {props.isBusy ? <Spinner /> : null}
           {props.isBusy ? null : (
             <button
               type="submit"
-              className="group inline-flex cursor-pointer justify-center rounded-full p-2 text-slate-700
-               transition-colors hover:bg-slate-700"
+              className="group inline-flex cursor-pointer justify-center rounded-full p-2 transition-colors
+               hover:bg-gray-950 dark:text-slate-700 dark:hover:bg-slate-700"
             >
               <svg
                 aria-hidden="true"
-                className="h-6 w-6 rotate-90 text-zinc-500 group-hover:text-white"
+                className="h-6 w-6 rotate-90 text-gray-950 group-hover:text-white dark:text-zinc-500"
                 fill="currentColor"
                 viewBox="0 0 20 20"
                 xmlns="http://www.w3.org/2000/svg"
