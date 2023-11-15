@@ -41,7 +41,7 @@ const CostEstimate = () => {
     return null
   }
   return (
-    <span className="drak:text-gray-400 me-2 inline-flex items-center rounded bg-gray-700 px-2.5 py-0.5 text-xs font-medium text-white">
+    <span className="drak:text-gray-400 mb-2 inline-flex items-center rounded bg-gray-700 px-2.5 py-0.5 text-xs font-medium text-white">
       <TbPigMoney className="text-base" />
       <span className="ml-2">
         <span>${cost.amount}</span>

@@ -33,7 +33,7 @@ const ColorModeSwitcherComponent = () => {
   }, [colorMode, setColorMode])
 
   return (
-    <label className="relative mb-5 inline-flex cursor-pointer items-center">
+    <label className="relative mb-3 inline-flex cursor-pointer items-center">
       <input
         type="checkbox"
         value=""
@@ -161,7 +161,7 @@ function App() {
                 </ul>
               ) : null}
             </div>
-            <div className="flex flex-col bg-black px-3 py-4 dark:bg-zinc-900">
+            <div className="bg-black px-3 py-4 dark:bg-zinc-900">
               <ColorModeSwitcher />
               <CostEstimate />
               <LogoutLink />
