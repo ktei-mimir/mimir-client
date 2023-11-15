@@ -1,7 +1,16 @@
 import { useAuth0 } from '@auth0/auth0-react'
+import React, { useCallback } from 'react'
 
 const LogoutLink = () => {
   const { logout } = useAuth0()
+
+  const handleLogout = useCallback(
+    async (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
+      e.preventDefault()
+      await logout({ logoutParams: { returnTo: window.location.origin } })
+    },
+    [logout]
+  )
 
   return (
     <a
@@ -10,10 +19,7 @@ const LogoutLink = () => {
         text-white
         transition-colors
         hover:bg-white hover:text-gray-900 dark:hover:bg-slate-700 dark:hover:text-white"
-      onClick={e => {
-        e.preventDefault()
-        logout({ logoutParams: { returnTo: window.location.origin } }).then()
-      }}
+      onClick={handleLogout}
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
