@@ -44,7 +44,7 @@ const CostEstimate = () => {
     <span className="me-2 inline-flex items-center rounded bg-gray-700 px-2.5 py-0.5 text-xs font-medium text-gray-400">
       <TbPigMoney className="text-base" />
       <span className="ml-2">
-        <span>{cost.amount}</span>
+        <span>${cost.amount}</span>
         <span className="ml-0.5">{cost.unit} this month</span>
       </span>
     </span>
