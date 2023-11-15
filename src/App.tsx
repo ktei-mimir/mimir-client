@@ -45,6 +45,8 @@ import {
   ListConversationsResponse,
   listConversations
 } from './api/conversationApi'
+import WebSocketContextProvider from '@/context/WebSocketContext'
+import CostEstimate from '@/views/cost/CostEstimate'
 
 function App() {
   const authenticatedApi = useAuthenticatedApi()
@@ -54,18 +56,6 @@ function App() {
       return await listConversations(authenticatedApi)
     })
 
-  // useEffect(() => {
-  //   const getToken = async () => {
-  //     const token = await getAccessTokenSilently({
-  //       authorizationParams: {
-  //         audience: `https://api.mimir`,
-  //         scope: 'write:chatgpt'
-  //       }
-  //     })
-  //     setToken(token)
-  //   }
-  //   getToken()
-  // }, [getAccessTokenSilently])
   return (
     <div className="h-full font-primary">
       <Router>
@@ -120,6 +110,7 @@ function App() {
               ) : null}
             </div>
             <div className="bg-zinc-900 px-3 py-4">
+              <CostEstimate />
               <LogoutLink />
             </div>
           </div>
@@ -128,14 +119,19 @@ function App() {
             <div className="relative flex w-full grow justify-center overflow-y-auto">
               <main className="transition-width  flex h-full w-full flex-col items-stretch sm:max-w-5xl">
                 <GlobalAlertContextProvider>
-                  <Routes>
-                    <Route index element={<Navigate to="/conversation" />} />
-                    <Route path="/conversation" element={<NewConversation />} />
-                    <Route
-                      path="/conversation/:conversationId"
-                      element={<ViewConversation />}
-                    />
-                  </Routes>
+                  <WebSocketContextProvider>
+                    <Routes>
+                      <Route index element={<Navigate to="/conversation" />} />
+                      <Route
+                        path="/conversation"
+                        element={<NewConversation />}
+                      />
+                      <Route
+                        path="/conversation/:conversationId"
+                        element={<ViewConversation />}
+                      />
+                    </Routes>
+                  </WebSocketContextProvider>
                 </GlobalAlertContextProvider>
               </main>
             </div>

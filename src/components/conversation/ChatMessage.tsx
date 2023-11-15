@@ -6,11 +6,14 @@ import hljs from 'highlight.js'
 import 'highlight.js/styles/atom-one-dark.css'
 import DOMPurify from 'isomorphic-dompurify'
 import { marked } from 'marked'
-import { memo, useEffect } from 'react'
+import { memo, useCallback, useEffect } from 'react'
 
 type MessageProps = {
   text?: string
   role: Role
+  streamId?: string
+  isStreaming: boolean
+  onPause?: (streamId: string) => void
 }
 
 function renderText(text: string, role: Role) {
@@ -27,12 +30,28 @@ function renderText(text: string, role: Role) {
 
 const ChatMessage = (props: MessageProps) => {
   const isUser = props.role === 'user'
+
   useEffect(() => {
     hljs.configure({
       ignoreUnescapedHTML: true
     })
-    hljs.highlightAll()
+  }, [])
+
+  useEffect(() => {
+    document.querySelectorAll('pre code').forEach(el => {
+      if ((el as HTMLElement).dataset.highlighted) return
+      hljs.highlightElement(el as HTMLElement)
+    })
   }, [props.text])
+
+  const { streamId, onPause } = props
+
+  const handlePauseClick = useCallback(() => {
+    if (streamId) {
+      onPause?.(streamId)
+    }
+  }, [onPause, streamId])
+
   return (
     <div className="sm:w-3xl mx-auto flex-1 pt-4 font-extralight text-gray-200 sm:max-w-3xl">
       <div className="flex flex-row">
@@ -48,7 +67,27 @@ const ChatMessage = (props: MessageProps) => {
             }
           )}
         >
-          {props.text ? renderText(props.text, props.role) : <Spinner />}
+          <div className="flex-col">
+            {props.text ? renderText(props.text, props.role) : null}
+            {props.streamId && !props.isStreaming ? (
+              <div className="flex w-full justify-center">
+                <Spinner className="self-center" />
+              </div>
+            ) : null}
+            {props.isStreaming ? (
+              <div className="mt-2 flex w-full justify-center">
+                <div className="flex flex-row">
+                  <Spinner className="self-center" />
+                  <button
+                    className="ml-2 rounded bg-gray-100 px-4 py-1 font-semibold text-gray-800 shadow hover:bg-zinc-300"
+                    onClick={handlePauseClick}
+                  >
+                    Stop
+                  </button>
+                </div>
+              </div>
+            ) : null}
+          </div>
         </div>
       </div>
     </div>

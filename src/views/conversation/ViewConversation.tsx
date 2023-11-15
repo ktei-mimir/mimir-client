@@ -8,18 +8,14 @@ import {
 import Spinner from '@/components/common/Spinner'
 import ChatMessage from '@/components/conversation/ChatMessage'
 import UserInput from '@/components/conversation/UserInput'
-import usePendingMessage from '@/components/conversation/conversationStore'
 import { useGlobalAlertActionsContext } from '@/context/GlobalAlertContext'
 import { handleApiError } from '@/helpers/apiErrorHandler'
 import dateUtils from '@/helpers/dateUtils'
-import { buildConnection } from '@/helpers/signalRConnectionFactory'
 import { randomUUID } from '@/helpers/stringUtils'
 import useAuthenticatedApi from '@/hooks/useAuthenticatedApi'
 import useAppState from '@/store/appStateStore'
-import { useAuth0 } from '@auth0/auth0-react'
-import * as signalR from '@microsoft/signalr'
 import produce from 'immer'
-import { memo, useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import {
   QueryFunction,
   useMutation,
@@ -27,11 +23,18 @@ import {
   useQueryClient
 } from 'react-query'
 import { Link, useParams } from 'react-router-dom'
+import logger from '@/helpers/logger'
+import {
+  emitter,
+  SocketMessage,
+  useWebSocketContext
+} from '@/context/WebSocketContext'
 
 type StreamMessageRequest = {
   streamId: string
   conversationId: string
-  content: string
+  chunk?: string
+  stop?: boolean
 }
 
 const appendMessages = (
@@ -42,17 +45,31 @@ const appendMessages = (
     messages.forEach(m => draft.items.push(m))
   })
 
+const canRefetch = (d: ListMessagesResponse | undefined) => {
+  if (!d) return true
+  // make sure no message is streaming
+  return d.items?.every(m => !m.isStreaming) === true
+}
+
 const streamMessage = (
-  conversation: ListMessagesResponse,
+  messages: ListMessagesResponse,
   streamId: string,
-  content: string
+  chunk?: string,
+  stop?: boolean
 ) =>
-  produce(conversation, draft => {
+  produce(messages, draft => {
     const messageToStream = draft.items.find(m => m.streamId === streamId)
     if (!messageToStream) {
       return
     }
-    messageToStream.content = content
+    if (stop) {
+      delete messageToStream.streamId
+      messageToStream.isStreaming = false
+      return
+    } else if (chunk) {
+      messageToStream.content += chunk
+      messageToStream.isStreaming = true
+    }
   })
 
 const ViewConversation = () => {
@@ -70,10 +87,25 @@ const ViewConversation = () => {
     return await listMessages(authenticatedApi, conversationId)
   }
 
+  const refreshInterval = 5 * 60 * 1000 // ms
+
   const { data, isLoading, isSuccess, isError, error } = useQuery(
     queryKey,
     fetchMessages,
     {
+      refetchInterval: (d: ListMessagesResponse | undefined) => {
+        return canRefetch(d) ? refreshInterval : false
+      },
+      refetchOnWindowFocus: () => {
+        return canRefetch(
+          queryClient.getQueryData<ListMessagesResponse>(queryKey)
+        )
+      },
+      refetchOnMount: () => {
+        return canRefetch(
+          queryClient.getQueryData<ListMessagesResponse>(queryKey)
+        )
+      },
       onSuccess: () => {
         setError()
       },
@@ -120,7 +152,7 @@ const ViewConversation = () => {
             }
           )
         },
-        onError: (err, variables, context?: ListMessagesResponse) => {
+        onError: (err, _variables, context?: ListMessagesResponse) => {
           if (context) {
             queryClient.setQueryData(queryKey, context)
           }
@@ -136,99 +168,85 @@ const ViewConversation = () => {
       }
     )
 
-  const [hubConnection, setHubConnection] = useState<signalR.HubConnection>()
+  const { connectionId } = useWebSocketContext()
 
   const handleMessageSubmit = async (message: string) => {
     await createMessageAsync({
       streamId: randomUUID(),
       conversationId: conversationId,
-      content: message
+      content: message,
+      connectionId
     })
   }
-
-  const { pendingMessage, clearPendingMessage } = usePendingMessage()
-
-  const { getAccessTokenSilently } = useAuth0()
 
   const handleStreamMessage = useCallback(
     (m: StreamMessageRequest) => {
       if (m.conversationId !== conversationId) {
-        console.warn(
-          'ConversationId not matched',
-          m.conversationId,
-          conversationId
+        logger.warn(
+          {
+            conversationId: m.conversationId,
+            expectedConversationId: conversationId
+          },
+          'ConversationId not matched'
         )
         return
       }
-      let currentConversation =
-        queryClient.getQueryData<ListMessagesResponse>(queryKey)
-      if (!currentConversation) {
-        console.warn('No current conversation found', conversationId)
+      let messages = queryClient.getQueryData<ListMessagesResponse>(queryKey)
+      if (!messages) {
+        logger.warn({ queryKey }, 'No current conversation found')
         return
       }
 
-      currentConversation = streamMessage(
-        currentConversation,
-        m.streamId,
-        m.content
-      )
-      queryClient.setQueryData(queryKey, currentConversation)
+      messages = streamMessage(messages, m.streamId, m.chunk, m.stop)
+      queryClient.setQueryData(queryKey, messages)
       scrollToBottom()
     },
     [conversationId, queryClient, queryKey]
   )
 
+  const handlePauseStream = useCallback(
+    (streamId: string) => {
+      let currentConversation =
+        queryClient.getQueryData<ListMessagesResponse>(queryKey)
+      if (!currentConversation) {
+        return
+      }
+      currentConversation = streamMessage(
+        currentConversation,
+        streamId,
+        undefined,
+        true
+      )
+      queryClient.setQueryData(queryKey, currentConversation)
+    },
+    [queryClient, queryKey]
+  )
+
   const { setSelectedConversationId } = useAppState()
 
+  const handleSocketMessage = useCallback(
+    (payload: SocketMessage) => {
+      if (payload.action !== 'streamCompletion') {
+        return
+      }
+      const m = payload as unknown as StreamMessageRequest
+      handleStreamMessage(m)
+    },
+    [handleStreamMessage]
+  )
+
   useEffect(() => {
-    setHubConnection(buildConnection(getAccessTokenSilently))
-  }, [getAccessTokenSilently])
+    emitter.on('onMessage', handleSocketMessage)
+    return () => {
+      emitter.off('onMessage', handleSocketMessage)
+    }
+  }, [handleSocketMessage])
 
   useEffect(() => {
     setSelectedConversationId(conversationId)
 
-    async function sendPendingMessage() {
-      if (!conversationId) return
-      const messageToCreate = pendingMessage.trim()
-      if (pendingMessage.length === 0) {
-        return
-      }
-      clearPendingMessage()
-      await createMessageAsync({
-        streamId: randomUUID(),
-        conversationId: conversationId,
-        content: messageToCreate
-      })
-    }
-
-    if (hubConnection) {
-      hubConnection.on('StreamMessage', handleStreamMessage)
-      if (hubConnection.state !== signalR.HubConnectionState.Connected) {
-        hubConnection.start().then(() => {
-          if (hubConnection.state === signalR.HubConnectionState.Connected) {
-            sendPendingMessage().catch(console.error)
-          }
-        })
-      }
-    }
-
     scrollToBottom()
-
-    return () => {
-      hubConnection?.off('StreamMessage', handleStreamMessage)
-    }
-  }, [
-    clearPendingMessage,
-    conversationId,
-    createMessageAsync,
-    getAccessTokenSilently,
-    handleStreamMessage,
-    queryClient,
-    queryKey,
-    setSelectedConversationId,
-    hubConnection,
-    pendingMessage
-  ])
+  }, [conversationId, setSelectedConversationId])
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null)
   const scrollToBottom = () => {
@@ -241,7 +259,7 @@ const ViewConversation = () => {
         {isLoading && !isError ? (
           <Spinner className="mt-5 self-center" />
         ) : null}
-        {isSuccess ? renderMessages(data) : null}
+        {isSuccess ? renderMessages(data, handlePauseStream) : null}
         <div ref={messagesEndRef}></div>
       </div>
       <UserInput onSubmit={handleMessageSubmit} isBusy={isCreatingMessage} />
@@ -249,7 +267,10 @@ const ViewConversation = () => {
   )
 }
 
-function renderMessages(data: ListMessagesResponse | undefined) {
+function renderMessages(
+  data: ListMessagesResponse | undefined,
+  handlePauseStream?: (streamId: string) => void
+) {
   if (data === undefined) return null
   if (data.items.length === 0)
     return (
@@ -285,10 +306,13 @@ function renderMessages(data: ListMessagesResponse | undefined) {
           key={`${message.role}:${message.createdAt}`}
           text={message.content}
           role={message.role}
+          isStreaming={message.isStreaming === true}
+          streamId={message.streamId}
+          onPause={handlePauseStream}
         />
       ))}
     </ul>
   )
 }
 
-export default memo(ViewConversation)
+export default ViewConversation

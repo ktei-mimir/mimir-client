@@ -7,6 +7,7 @@ export type Message = {
   role: Role
   content?: string
   createdAt: number
+  isStreaming?: boolean
 }
 
 export type ListMessagesResponse = {
@@ -17,6 +18,7 @@ export type CreateMessageRequest = {
   streamId: string
   conversationId: string
   content: string
+  connectionId?: string
 }
 
 export type CreateMessageResponse = {
@@ -27,7 +29,7 @@ export type CreateMessageResponse = {
 
 export const listMessages = (api: AuthenticatedApi, conversationId: string) =>
   api
-    .get<ListMessagesResponse>(`v1/conversations/${conversationId}/messages`)
+    .get<ListMessagesResponse>(`conversations/${conversationId}/messages`)
     .then(res => res.data)
 
 export const createMessage = (
@@ -36,7 +38,7 @@ export const createMessage = (
 ) =>
   api
     .post<CreateMessageResponse>(
-      `v1/conversations/${request.conversationId}/messages`,
+      `conversations/${request.conversationId}/messages`,
       request
     )
     .then(res => res.data)
