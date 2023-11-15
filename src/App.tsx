@@ -38,7 +38,8 @@ const ColorModeSwitcherComponent = () => {
         type="checkbox"
         value=""
         className="peer sr-only"
-        onClick={toggleColorMode}
+        onChange={toggleColorMode}
+        checked={colorMode === 'dark'}
       />
       <div
         className="dark:peer-focus:ring-zic-800 peer h-6 w-11 rounded-full bg-gray-200 after:absolute
@@ -49,7 +50,7 @@ const ColorModeSwitcherComponent = () => {
       rtl:peer-checked:after:-translate-x-full dark:border-gray-600 dark:bg-gray-700"
       ></div>
       <span className="drak:text-gray-400 ms-3 text-sm font-medium text-white">
-        {colorMode === 'dark' ? 'Dark' : 'Light'}
+        {colorMode === 'dark' ? 'Light mode' : 'Dark mode'}
       </span>
     </label>
   )
@@ -61,6 +62,7 @@ function App() {
   const authenticatedApi = useAuthenticatedApi()
 
   const { colorMode } = useColorSchemeContext()
+  const { setColorMode } = useColorSchemeActionsContext()
 
   const { data, isLoading, isSuccess, isError } =
     useQuery<ListConversationsResponse>('conversations', async () => {
@@ -82,6 +84,25 @@ function App() {
       styleTag.innerHTML = light
     }
   }, [colorMode])
+
+  const handleThemeChange = useCallback(() => {
+    const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+    setColorMode(isDarkMode ? 'dark' : 'light')
+  }, [setColorMode])
+
+  useEffect(() => {
+    // Add event listener to watch for changes in the system's color scheme
+    window
+      .matchMedia('(prefers-color-scheme: dark)')
+      .addEventListener('change', handleThemeChange)
+
+    // Clean up the event listener
+    return () => {
+      window
+        .matchMedia('(prefers-color-scheme: dark)')
+        .removeEventListener('change', handleThemeChange)
+    }
+  }, [handleThemeChange])
 
   return (
     <div
