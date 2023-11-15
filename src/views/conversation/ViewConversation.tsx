@@ -152,7 +152,7 @@ const ViewConversation = () => {
             }
           )
         },
-        onError: (err, variables, context?: ListMessagesResponse) => {
+        onError: (err, _variables, context?: ListMessagesResponse) => {
           if (context) {
             queryClient.setQueryData(queryKey, context)
           }

@@ -40,13 +40,13 @@ import { Navigate, Route, HashRouter as Router, Routes } from 'react-router-dom'
 
 import LogoutLink from '@/components/conversation/LogoutLink'
 import GlobalAlertContextProvider from '@/context/GlobalAlertContext'
-import { TbPigMoney } from 'react-icons/tb'
 import {
   Conversation,
   ListConversationsResponse,
   listConversations
 } from './api/conversationApi'
 import WebSocketContextProvider from '@/context/WebSocketContext'
+import CostEstimate from '@/views/cost/CostEstimate'
 
 function App() {
   const authenticatedApi = useAuthenticatedApi()
@@ -110,15 +110,7 @@ function App() {
               ) : null}
             </div>
             <div className="bg-zinc-900 px-3 py-4">
-              {data ? (
-                <span className="me-2 inline-flex items-center rounded bg-gray-700 px-2.5 py-0.5 text-xs font-medium text-gray-400 text-gray-800 ">
-                  <TbPigMoney className="text-base" />
-                  <span className="ml-2">
-                    ${(Math.round(data.cost.total * 100) / 100).toFixed(2)}{' '}
-                    {data.cost.unit} this month
-                  </span>
-                </span>
-              ) : null}
+              <CostEstimate />
               <LogoutLink />
             </div>
           </div>
