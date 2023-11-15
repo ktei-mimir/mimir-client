@@ -22,7 +22,7 @@ import {
   useQuery,
   useQueryClient
 } from 'react-query'
-import { Link, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import logger from '@/helpers/logger'
 import {
   emitter,
@@ -272,33 +272,6 @@ function renderMessages(
   handlePauseStream?: (streamId: string) => void
 ) {
   if (data === undefined) return null
-  if (data.items.length === 0)
-    return (
-      <div className="flex flex-col px-5">
-        <div
-          className="mt-5 bg-zinc-700 p-4 text-center text-sm text-gray-200"
-          role="alert"
-        >
-          No messages found for current conversation
-        </div>
-        <Link
-          to="/conversation"
-          type="button"
-          className="mt-5 inline-flex
-          w-full
-           items-center justify-center gap-2 self-center bg-slate-700
-            px-4 py-3 text-sm font-semibold text-white
-            transition-colors
-            hover:bg-slate-800 sm:w-56"
-        >
-          Create new conversation
-        </Link>
-        <p className="mt-5 self-center text-gray-500">Or</p>
-        <p className="mt-5 self-center text-gray-500">
-          Use the text box bottom to send a new message
-        </p>
-      </div>
-    )
   return (
     <ul className="">
       {(data?.items ?? []).map((message: Message) => (
