@@ -30,7 +30,7 @@ const PromptCard = (props: Props) => {
             (prompt.title.length > MAX_TITLE_DISPLAY_LENGTH ? '...' : '')}
         </h5>
         <Link to={`/prompt/${prompt.id}`}>
-          <FaEdit className="cursor-pointer text-xl group-hover:inline md:hidden" />
+          <FaEdit className="cursor-pointer text-xl group-hover:inline dark:text-gray-500 md:hidden" />
         </Link>
       </div>
       <Link
