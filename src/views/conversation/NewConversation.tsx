@@ -5,13 +5,19 @@ import { handleApiError } from '@/helpers/apiErrorHandler'
 import useAuthenticatedApi from '@/hooks/useAuthenticatedApi'
 import useAppState from '@/store/appStateStore'
 import { useEffect, useState } from 'react'
-import { useMutation, useQueryClient } from 'react-query'
+import {
+  QueryFunction,
+  useMutation,
+  useQuery,
+  useQueryClient
+} from 'react-query'
 import { useNavigate } from 'react-router-dom'
 import { createMessage } from '@/api/messageApi'
 import { randomUUID } from '@/helpers/stringUtils'
 import { useWebSocketContext } from '@/context/WebSocketContext'
 import PromptCard from '@/components/prompt/PromptCard'
-import { Link } from 'react-router-dom'
+import { listPrompts, ListPromptsResponse } from '@/api/promptApi'
+import Button from '@/components/common/Button'
 
 const NewConversation = () => {
   const queryClient = useQueryClient()
@@ -20,6 +26,15 @@ const NewConversation = () => {
     createConversation(authenticatedApi, {
       message
     })
+  )
+
+  const fetchPrompts: QueryFunction<ListPromptsResponse> = async () => {
+    return await listPrompts(authenticatedApi)
+  }
+
+  const { data: prompts, isLoading: isLoadingPrompts } = useQuery(
+    '/prompts',
+    fetchPrompts
   )
 
   const navigate = useNavigate()
@@ -69,18 +84,22 @@ const NewConversation = () => {
           {/*  </p>*/}
           {/*</div>*/}
 
-          <Link
-            to="/prompt"
-            className="w-full self-center rounded bg-blue-500 px-4 py-2 text-center font-bold text-white hover:bg-blue-700 sm:w-64"
-          >
+          <Button className="w-full self-center sm:w-64">
             Create a prompt
-          </Link>
+          </Button>
 
           <div className="grid grid-flow-row auto-rows-max overflow-auto sm:grid-cols-2 sm:gap-2 lg:grid-cols-3 lg:gap-2">
-            <PromptCard className="mt-2" />
-            <PromptCard className="mt-2" />
-            <PromptCard className="mt-2" />
-            <PromptCard className="mt-2" />
+            {!isLoadingPrompts && prompts ? (
+              <>
+                {prompts.items.map(prompt => (
+                  <PromptCard
+                    key={prompt.id}
+                    prompt={prompt}
+                    className="mt-2"
+                  />
+                ))}
+              </>
+            ) : null}
           </div>
         </div>
       </div>

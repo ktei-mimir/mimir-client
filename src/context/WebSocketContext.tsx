@@ -36,7 +36,7 @@ const WebSocketContextProvider = (props: Props) => {
 
   const getSocketUrl = useCallback(async () => {
     const token = await getAccessTokenSilently()
-    return `wss://mimir-chat-socket.disasterdev.net/prod/?token=${token}`
+    return `${import.meta.env.VITE_WEBSOCKET_URL}?token=${token}`
   }, [getAccessTokenSilently])
 
   const [state, setState] = useState<WebSocketValues>({})
