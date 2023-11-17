@@ -4,7 +4,7 @@ import { useGlobalAlertActionsContext } from '@/context/GlobalAlertContext'
 import { handleApiError } from '@/helpers/apiErrorHandler'
 import useAuthenticatedApi from '@/hooks/useAuthenticatedApi'
 import useAppState from '@/store/appStateStore'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
   QueryFunction,
   useMutation,
@@ -71,6 +71,10 @@ const NewConversation = () => {
     setSelectedConversationId(undefined)
   }, [setSelectedConversationId])
 
+  const handleCreatePrompt = useCallback(() => {
+    navigate('/prompt')
+  }, [navigate])
+
   return (
     <>
       <div className="flex h-full w-full justify-center overflow-auto pb-28">
@@ -84,7 +88,10 @@ const NewConversation = () => {
           {/*  </p>*/}
           {/*</div>*/}
 
-          <Button className="w-full self-center sm:w-64">
+          <Button
+            className="w-full self-center sm:w-64"
+            onClick={handleCreatePrompt}
+          >
             Create a prompt
           </Button>
 
