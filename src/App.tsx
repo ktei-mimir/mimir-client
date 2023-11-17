@@ -105,7 +105,7 @@ function App() {
         <div className="h-full bg-white dark:bg-zinc-800">
           <div
             id="navigation-menu"
-            className="hs-overlay scrollbar-y fixed bottom-0 left-0 top-0 z-[60] hidden
+            className="hs-overlay scrollbar-y fixed bottom-0 left-0 top-0 z-[60] flex hidden
           w-64 -translate-x-full transform flex-col divide-y divide-zinc-800
           overflow-y-auto border-r border-zinc-800 bg-white text-sm
           text-white transition-all duration-300 hs-overlay-open:translate-x-0 sm:bottom-0 sm:right-auto
