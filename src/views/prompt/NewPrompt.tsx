@@ -5,7 +5,7 @@ const NewPrompt = () => {
   return (
     <Container>
       <div className="flex justify-center">
-        <form className="mb-4 w-full rounded bg-white px-8 pb-8 pt-6 shadow-md sm:max-w-xl sm:self-center">
+        <form className="mb-4 w-full rounded bg-white px-8 pb-8 pt-6 shadow-md sm:max-w-xl sm:self-center md:max-w-2xl lg:max-w-3xl">
           <div className="mb-4">
             <label
               className="mb-2 block text-sm font-bold text-gray-700"
