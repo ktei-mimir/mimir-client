@@ -44,7 +44,7 @@ const WebSocketContextProvider = (props: Props) => {
   useWebSocket(getSocketUrl, {
     share: true,
     onMessage: event => {
-      logger.info(event.data, 'websocket message received')
+      logger.debug(event.data, 'websocket message received')
       const payload = JSON.parse(event.data) as SocketMessage
       if (payload.action === 'notifyConnectionId') {
         logger.info(`websocket connectionId received: ${payload.connectionId}`)
