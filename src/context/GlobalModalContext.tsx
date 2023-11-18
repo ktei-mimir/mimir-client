@@ -1,13 +1,28 @@
-import { ReactNode, useCallback, useMemo } from 'react'
+import { MouseEvent, ReactNode, useCallback, useMemo, useState } from 'react'
 import { contextFactory } from '@/helpers/contextFactory'
-// import HSOverlay from '@preline/overlay'
+import Button from '@/components/common/Button'
 
 type Props = {
   children?: ReactNode
 }
 
+type ModalOptions = {
+  title?: string
+  content?: string
+  actions?: {
+    primary?: {
+      label?: string
+      onClick?: () => void
+    }
+    secondary?: {
+      label?: string
+      onClick?: () => void
+    }
+  }
+}
+
 type GlobalModalActions = {
-  showModal: () => void
+  showModal: (options?: ModalOptions) => void
 }
 
 const [useGlobalModalContext, GlobalModalContext] =
@@ -18,26 +33,27 @@ export { useGlobalModalContext }
 const GlobalModalContextProvider = (props: Props) => {
   const { children } = props
 
-  const showModal = useCallback(() => {
-    // const target = document.getElementById('__mimir-global-modal__')
-    // if (!target) return
-    // const instance = HSOverlay.getInstance(
-    //   document.getElementById('__mimir-global-modal__')!,
-    //   true
-    // )
-    // console.log(instance)
-    document.getElementById('__mimir-global-modal-trigger__')?.click()
-    // const modal = new HSOverlay(
-    //   document.querySelector('#__mimir-global-modal__')!
-    // )
-    // if (isOpen) {
-    //   // element.open()
-    //   // modal.open()
-    // } else {
-    //   // element.close()
-    //   // await modal.close()
-    // }
-  }, [])
+  const [options, setOptions] = useState<ModalOptions>()
+
+  const showModal = useCallback(
+    (opts?: ModalOptions) => {
+      setOptions({ ...options, ...opts })
+      document.getElementById('__mimir-global-modal-trigger__')?.click()
+    },
+    [options]
+  )
+
+  const handlePrimaryAction = useCallback(() => {
+    options?.actions?.primary?.onClick?.()
+  }, [options?.actions?.primary])
+
+  const handleSecondaryAction = useCallback(
+    (e: MouseEvent<HTMLAnchorElement>) => {
+      e.preventDefault()
+      options?.actions?.secondary?.onClick?.()
+    },
+    [options?.actions?.secondary]
+  )
 
   const actions = useMemo(
     () => ({
@@ -62,14 +78,14 @@ const GlobalModalContextProvider = (props: Props) => {
         className="hs-overlay fixed left-0 start-0 top-0 z-[99] hidden h-full w-full overflow-y-auto overflow-x-hidden"
       >
         <div className="m-3 opacity-0 transition-all hs-overlay-open:opacity-100 hs-overlay-open:duration-500 sm:mx-auto sm:w-full sm:max-w-lg">
-          <div className="flex flex-col rounded-xl border bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:shadow-slate-700/[.7]">
+          <div className="flex flex-col border bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:shadow-slate-700/[.7]">
             <div className="flex items-center justify-between border-b px-4 py-3 dark:border-gray-700">
               <h3 className="font-bold text-gray-800 dark:text-white">
-                Modal title
+                {options?.title || 'Mimir'}
               </h3>
               <button
                 type="button"
-                className="flex h-7 w-7 items-center justify-center rounded-full border border-transparent text-sm font-semibold text-gray-800 hover:bg-gray-100 disabled:pointer-events-none disabled:opacity-50 dark:text-white dark:hover:bg-gray-700 dark:focus:outline-none dark:focus:ring-1 dark:focus:ring-gray-600"
+                className="flex h-7 w-7 items-center justify-center border border-transparent text-sm font-semibold text-gray-800 hover:bg-gray-100 disabled:pointer-events-none disabled:opacity-50 dark:text-white dark:hover:bg-gray-700 dark:focus:outline-none dark:focus:ring-1 dark:focus:ring-gray-600"
                 data-hs-overlay="#__mimir-global-modal__"
               >
                 <span className="sr-only">Close</span>
@@ -92,23 +108,26 @@ const GlobalModalContextProvider = (props: Props) => {
             </div>
             <div className="overflow-y-auto p-4">
               <p className="mt-1 text-gray-800 dark:text-gray-400">
-                This is a wider card with supporting text below as a natural
-                lead-in to additional content.
+                {options?.content || ''}
               </p>
             </div>
             <div className="flex items-center justify-end gap-x-2 border-t px-4 py-3 dark:border-gray-700">
-              <button
+              <Button
                 type="button"
-                className="inline-flex items-center gap-x-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-800 shadow-sm hover:bg-gray-50 disabled:pointer-events-none disabled:opacity-50 dark:border-gray-700 dark:bg-slate-900 dark:text-white dark:hover:bg-gray-800 dark:focus:outline-none dark:focus:ring-1 dark:focus:ring-gray-600"
                 data-hs-overlay="#__mimir-global-modal__"
+                onClick={handlePrimaryAction}
+                // className="inline-flex items-center gap-x-2 rounded-lg border border-transparent bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:pointer-events-none disabled:opacity-50 dark:focus:outline-none dark:focus:ring-1 dark:focus:ring-gray-600"
               >
-                Close
-              </button>
+                {options?.actions?.primary?.label || 'OK'}
+              </Button>
               <a
-                className="inline-flex items-center gap-x-2 rounded-lg border border-transparent bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:pointer-events-none disabled:opacity-50 dark:focus:outline-none dark:focus:ring-1 dark:focus:ring-gray-600"
+                className="ml-4 inline-block self-center text-sm
+                font-bold text-gray-900 hover:text-black dark:text-gray-500 dark:hover:text-gray-600"
                 href="#"
+                data-hs-overlay="#__mimir-global-modal__"
+                onClick={handleSecondaryAction}
               >
-                Save changes
+                {options?.actions?.secondary?.label || 'Cancel'}
               </a>
             </div>
           </div>

@@ -18,7 +18,7 @@ const Button = (props: Props) => {
         { 'inline-flex items-center': isLoading },
         className
       )}
-      type="submit"
+      type="button"
       {...rest}
       disabled={isLoading === true}
     >

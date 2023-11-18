@@ -12,6 +12,7 @@ import produce from 'immer'
 import {
   createPrompt,
   CreatePromptRequest,
+  deletePrompt,
   listPrompts,
   ListPromptsResponse,
   updatePrompt,
@@ -28,6 +29,7 @@ import useAuthenticatedApi from '@/hooks/useAuthenticatedApi'
 import Button from '@/components/common/Button'
 import TextInput from '@/components/common/TextInput'
 import TextArea from '@/components/common/TextArea'
+import { useGlobalModalContext } from '@/context/GlobalModalContext'
 
 type FormData = {
   title: string
@@ -37,6 +39,12 @@ type FormData = {
 function updateField(state: FormData, name: keyof FormData, value: string) {
   return produce(state, draft => {
     draft[name] = value
+  })
+}
+
+function removePrompt(prompts: ListPromptsResponse, id: string) {
+  return produce(prompts, draft => {
+    draft.items = draft.items.filter(p => p.id !== id)
   })
 }
 
@@ -56,17 +64,19 @@ const EditPrompt = () => {
 
   const isEditing = useMemo(() => !!promptId, [promptId])
 
+  const prompt = useMemo(
+    () => prompts?.items.find(p => p.id === promptId),
+    [prompts, promptId]
+  )
+
   useEffect(() => {
-    if (!promptId) return
-    if (!prompts) return
-    const prompt = prompts.items.find(p => p.id === promptId)
     if (prompt) {
       setForm({
         title: prompt.title,
         text: prompt.text
       })
     }
-  }, [promptId, prompts])
+  }, [prompt])
 
   const [form, setForm] = useState<FormData>({
     title: '',
@@ -79,6 +89,9 @@ const EditPrompt = () => {
 
   const { mutateAsync: updateAsync, isLoading: isUpdating } = useMutation(
     (request: UpdatePromptRequest) => updatePrompt(authenticatedApi, request)
+  )
+  const { mutateAsync: deleteAsync, isLoading: isDeleting } = useMutation(
+    (id: string) => deletePrompt(authenticatedApi, id)
   )
 
   const isSaving = useMemo(
@@ -136,6 +149,34 @@ const EditPrompt = () => {
     ]
   )
 
+  const { showModal } = useGlobalModalContext()
+
+  const handleDelete = useCallback(async () => {
+    if (!prompt) return
+    showModal({
+      title: 'Delete prompt',
+      content: 'Are you sure you want to delete this prompt?',
+      actions: {
+        primary: {
+          label: 'Delete',
+          onClick: async () => {
+            await deleteAsync(prompt.id)
+            if (prompts) {
+              queryClient.setQueryData<ListPromptsResponse>('prompts', old => {
+                if (!old) return prompts
+                return removePrompt(old, prompt.id)
+              })
+            }
+            navigate('/conversation')
+          }
+        },
+        secondary: {
+          label: 'Cancel'
+        }
+      }
+    })
+  }, [deleteAsync, navigate, prompt, queryClient, showModal])
+
   return (
     <Container>
       <div className="flex justify-center">
@@ -184,14 +225,22 @@ ${INPUT}
             />
           </div>
           <div className="flex items-center justify-between">
-            <Button type="submit" isLoading={isSaving}>
+            <Button type="submit" isLoading={isSaving || isDeleting}>
               {isEditing ? 'Save' : 'Create'}
             </Button>
             <div className="flex">
-              <Button>Delete</Button>
+              {prompt ? (
+                <Button
+                  isLoading={isDeleting}
+                  onClick={handleDelete}
+                  className="mr-6"
+                >
+                  Delete
+                </Button>
+              ) : null}
               <Link
                 to="/conversation"
-                className="ml-2 inline-block self-center text-sm
+                className="inline-block self-center text-sm
                 font-bold text-gray-900 hover:text-black dark:text-gray-500 dark:hover:text-gray-600"
               >
                 Cancel
