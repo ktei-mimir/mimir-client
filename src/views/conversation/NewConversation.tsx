@@ -28,6 +28,7 @@ import Button from '@/components/common/Button'
 import Spinner from '@/components/common/Spinner'
 import TextArea from '@/components/common/TextArea'
 import produce from 'immer'
+import { useGlobalModalContext } from '@/context/GlobalModalContext'
 
 type FormData = {
   message: string
@@ -109,9 +110,12 @@ const NewConversation = () => {
     setSelectedConversationId(undefined)
   }, [setSelectedConversationId])
 
+  const { showModal } = useGlobalModalContext()
+
   const handleCreatePrompt = useCallback(() => {
-    navigate('/prompt')
-  }, [navigate])
+    showModal()
+    // navigate('/prompt')
+  }, [showModal])
 
   const [searchParams] = useSearchParams()
   const promptId = searchParams.get('promptId')

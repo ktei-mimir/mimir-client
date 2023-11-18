@@ -11,7 +11,7 @@ type Props = {
 
 const PromptCard = (props: Props) => {
   const { prompt, className } = props
-  const MAX_TITLE_DISPLAY_LENGTH = 65
+  const MAX_TITLE_DISPLAY_LENGTH = 40
   const navigate = useNavigate()
   const handleClick = useCallback(() => {
     navigate(`/conversation?promptId=${prompt.id}`)
@@ -29,7 +29,7 @@ const PromptCard = (props: Props) => {
       onClick={handleClick}
     >
       <div className="flex flex-row">
-        <h5 className="mb-2 h-24 w-full overflow-auto text-lg font-medium tracking-tight text-gray-900 dark:text-white">
+        <h5 className="mb-2 h-14 w-full overflow-auto text-lg font-medium tracking-tight text-gray-900 dark:text-white">
           {prompt.title.slice(0, MAX_TITLE_DISPLAY_LENGTH) +
             (prompt.title.length > MAX_TITLE_DISPLAY_LENGTH ? '...' : '')}
         </h5>

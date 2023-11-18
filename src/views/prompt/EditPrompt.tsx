@@ -187,12 +187,16 @@ ${INPUT}
             <Button type="submit" isLoading={isSaving}>
               {isEditing ? 'Save' : 'Create'}
             </Button>
-            <Link
-              to="/conversation"
-              className="inline-block align-baseline text-sm font-bold text-gray-900 hover:text-black dark:text-gray-500 dark:hover:text-gray-600"
-            >
-              Cancel
-            </Link>
+            <div className="flex">
+              <Button>Delete</Button>
+              <Link
+                to="/conversation"
+                className="ml-2 inline-block self-center text-sm
+                font-bold text-gray-900 hover:text-black dark:text-gray-500 dark:hover:text-gray-600"
+              >
+                Cancel
+              </Link>
+            </div>
           </div>
         </form>
       </div>
