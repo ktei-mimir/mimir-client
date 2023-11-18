@@ -139,12 +139,15 @@ const NewConversation = () => {
       : `${prompt.text.replace(`\${INPUT}`, form.message)}`
   }, [form.message, prompt])
 
+  const { message } = form
+
   const handleFormSubmit = useCallback(
     async (e: FormEvent<HTMLFormElement>) => {
       e.preventDefault()
+      if (!message.trim()) return
       await submitMessage(promptEnhancedMessage)
     },
-    [submitMessage, promptEnhancedMessage]
+    [message, submitMessage, promptEnhancedMessage]
   )
 
   return (
@@ -172,7 +175,7 @@ const NewConversation = () => {
                   <form className="mt-2 w-full" onSubmit={handleFormSubmit}>
                     <TextArea
                       className="h-96 max-h-96 w-full md:h-96"
-                      value={form.message}
+                      value={message}
                       onChange={handleTextAreaChange}
                       name="message"
                       placeholder="Your input..."
