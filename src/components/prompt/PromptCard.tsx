@@ -1,4 +1,4 @@
-import { memo, useCallback } from 'react'
+import { memo, MouseEvent, useCallback } from 'react'
 import classNames from 'classnames'
 import { Prompt } from '@/api/promptApi'
 import { Link, useNavigate } from 'react-router-dom'
@@ -14,8 +14,12 @@ const PromptCard = (props: Props) => {
   const MAX_TITLE_DISPLAY_LENGTH = 65
   const navigate = useNavigate()
   const handleClick = useCallback(() => {
-    navigate(`/prompt/${prompt.id}`)
+    navigate(`/conversation?promptId=${prompt.id}`)
   }, [navigate, prompt.id])
+
+  const handleEditClick = useCallback((e: MouseEvent<HTMLAnchorElement>) => {
+    e.stopPropagation()
+  }, [])
   return (
     <div
       className={classNames(
@@ -29,12 +33,12 @@ const PromptCard = (props: Props) => {
           {prompt.title.slice(0, MAX_TITLE_DISPLAY_LENGTH) +
             (prompt.title.length > MAX_TITLE_DISPLAY_LENGTH ? '...' : '')}
         </h5>
-        <Link to={`/prompt/${prompt.id}`}>
+        <Link to={`/prompt/${prompt.id}`} onClick={handleEditClick}>
           <FaEdit className="cursor-pointer text-xl group-hover:inline dark:text-gray-500 md:hidden" />
         </Link>
       </div>
       <Link
-        to={`/prompt/${prompt.id}`}
+        to={`/conversation?promptId=${prompt.id}`}
         className="inline-flex items-center bg-gray-900 px-3 py-2 text-center
         text-sm text-white hover:bg-black focus:outline-none
         dark:bg-gray-500 dark:hover:bg-gray-600"

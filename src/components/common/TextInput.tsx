@@ -10,7 +10,7 @@ const TextInput = (props: Props) => {
   return (
     <input
       className={classNames(
-        'focus:shadow-outline appearance-none px-3 py-2 leading-tight text-gray-700 shadow focus:outline-none dark:bg-zinc-700 dark:text-white',
+        'appearance-none border border-black px-3 py-2 leading-tight text-gray-700 focus:outline-none dark:border-gray-500 dark:bg-zinc-700 dark:text-white',
         className
       )}
       {...rest}
