@@ -239,7 +239,7 @@ ${INPUT}
                 </Button>
               ) : null}
               <Link
-                to="/conversation"
+                to="/"
                 className="inline-block self-center text-sm
                 font-bold text-gray-900 hover:text-black dark:text-gray-500 dark:hover:text-gray-600"
               >

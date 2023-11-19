@@ -4,7 +4,7 @@ import useAuthenticatedApi from '@/hooks/useAuthenticatedApi'
 import NewConversation from '@/views/conversation/NewConversation'
 import ViewConversation from '@/views/conversation/ViewConversation'
 import { useQuery } from 'react-query'
-import { Navigate, Route, HashRouter as Router, Routes } from 'react-router-dom'
+import { Route, HashRouter as Router, Routes } from 'react-router-dom'
 
 import LogoutLink from '@/components/conversation/LogoutLink'
 import GlobalAlertContextProvider from '@/context/GlobalAlertContext'
@@ -26,6 +26,7 @@ import light from 'highlight.js/styles/atom-one-light.css?raw'
 import ColorModeSwitcher from '@/components/colorScheme/ColorModeSwitcher'
 import EditPrompt from '@/views/prompt/EditPrompt'
 import GlobalModalContextProvider from '@/context/GlobalModalContext'
+import IndexView from '@/views/index/IndexView'
 
 function App() {
   const authenticatedApi = useAuthenticatedApi()
@@ -144,10 +145,7 @@ function App() {
                   <GlobalAlertContextProvider>
                     <WebSocketContextProvider>
                       <Routes>
-                        <Route
-                          index
-                          element={<Navigate to="/conversation" />}
-                        />
+                        <Route index element={<IndexView />} />
                         <Route
                           path="/conversation"
                           element={<NewConversation />}
