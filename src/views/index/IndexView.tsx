@@ -36,7 +36,7 @@ const IndexView = () => {
   }
 
   const { data: prompts, isLoading: isLoadingPrompts } = useQuery(
-    '/prompts',
+    'prompts',
     fetchPrompts
   )
 

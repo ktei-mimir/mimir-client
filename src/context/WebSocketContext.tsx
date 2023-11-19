@@ -30,13 +30,15 @@ const [useWebSocketContext, WebSocketContext] =
 
 export { useWebSocketContext }
 
+const websocketUrl = import.meta.env.VITE_WEBSOCKET_URL
+
 const WebSocketContextProvider = (props: Props) => {
   const { children } = props
   const { getAccessTokenSilently } = useAuth0()
 
   const getSocketUrl = useCallback(async () => {
     const token = await getAccessTokenSilently()
-    return `${import.meta.env.VITE_WEBSOCKET_URL}?token=${token}`
+    return `${websocketUrl}?token=${token}`
   }, [getAccessTokenSilently])
 
   const [state, setState] = useState<WebSocketValues>({})

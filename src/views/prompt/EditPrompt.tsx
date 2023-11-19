@@ -15,6 +15,7 @@ import {
   deletePrompt,
   listPrompts,
   ListPromptsResponse,
+  Prompt,
   updatePrompt,
   UpdatePromptRequest
 } from '@/api/promptApi'
@@ -42,9 +43,24 @@ function updateField(state: FormData, name: keyof FormData, value: string) {
   })
 }
 
-function removePrompt(prompts: ListPromptsResponse, id: string) {
+function remove(prompts: ListPromptsResponse, id: string) {
   return produce(prompts, draft => {
     draft.items = draft.items.filter(p => p.id !== id)
+  })
+}
+
+function add(prompts: ListPromptsResponse, prompt: Prompt) {
+  return produce(prompts, draft => {
+    draft.items.push(prompt)
+  })
+}
+
+function update(prompts: ListPromptsResponse, prompt: Prompt) {
+  return produce(prompts, draft => {
+    const index = draft.items.findIndex(p => p.id === prompt.id)
+    if (index !== -1) {
+      draft.items[index] = prompt
+    }
   })
 }
 
@@ -121,31 +137,46 @@ const EditPrompt = () => {
     async (e: FormEvent<HTMLFormElement>) => {
       e.preventDefault()
       if (!form.title || !form.text) return
+      let promptSaved: Prompt | undefined = undefined
       if (isEditing) {
         if (!promptId) return
-        await updateAsync({
+        promptSaved = await updateAsync({
           id: promptId,
           title: form.title,
           text: form.text
         })
+        if (prompts) {
+          queryClient.setQueryData<ListPromptsResponse>('prompts', old => {
+            if (!promptSaved) return prompts
+            if (!old) return prompts
+            return update(old, promptSaved)
+          })
+        }
       } else {
-        await createAsync({
+        promptSaved = await createAsync({
           title: form.title,
           text: form.text
         })
+        if (prompts) {
+          queryClient.setQueryData<ListPromptsResponse>('prompts', old => {
+            if (!promptSaved) return prompts
+            if (!old) return prompts
+            return add(old, promptSaved)
+          })
+        }
       }
-      await queryClient.invalidateQueries('prompts')
-      navigate('/conversation')
+      navigate('/')
     },
     [
-      updateAsync,
-      createAsync,
-      form.text,
       form.title,
+      form.text,
       isEditing,
+      queryClient,
       navigate,
       promptId,
-      queryClient
+      updateAsync,
+      createAsync,
+      prompts
     ]
   )
 
@@ -164,10 +195,10 @@ const EditPrompt = () => {
             if (prompts) {
               queryClient.setQueryData<ListPromptsResponse>('prompts', old => {
                 if (!old) return prompts
-                return removePrompt(old, prompt.id)
+                return remove(old, prompt.id)
               })
             }
-            navigate('/conversation')
+            navigate('/')
           }
         },
         secondary: {
@@ -175,7 +206,7 @@ const EditPrompt = () => {
         }
       }
     })
-  }, [deleteAsync, navigate, prompt, queryClient, showModal])
+  }, [deleteAsync, navigate, prompt, prompts, queryClient, showModal])
 
   return (
     <Container>
