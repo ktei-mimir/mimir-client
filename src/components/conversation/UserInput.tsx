@@ -1,9 +1,11 @@
 import Spinner from '@/components/common/Spinner'
 import React, { memo, useState } from 'react'
+import classNames from 'classnames'
 
 type UserInputProps = {
   onSubmit?: (message: string) => void
   isBusy?: boolean
+  className?: string
 }
 
 const UserInput = (props: UserInputProps) => {
@@ -69,11 +71,10 @@ const UserInput = (props: UserInputProps) => {
             onChange={onChange}
             onKeyDown={handleKeyDown}
             value={form.message}
-            className="mx-4 block w-full resize-none p-2.5 text-base
-              text-gray-700 placeholder-gray-400
-              shadow
-              dark:bg-zinc-700 dark:text-white
-              dark:outline-none sm:max-h-36 sm:resize-y"
+            className={classNames(
+              'mx-4 block w-full resize-none p-2.5 text-base text-gray-700 placeholder-gray-400 shadow dark:bg-zinc-700 dark:text-white dark:outline-none sm:resize-y',
+              props.className
+            )}
             placeholder="Your question..."
           ></textarea>
           {props.isBusy ? <Spinner /> : null}
