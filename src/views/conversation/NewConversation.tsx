@@ -27,6 +27,11 @@ import Spinner from '@/components/common/Spinner'
 import TextArea from '@/components/common/TextArea'
 import produce from 'immer'
 import classNames from 'classnames'
+import {
+  extractVariables,
+  parseInput,
+  replaceVariablesWithValues
+} from '@/views/conversation/promptHelper'
 
 type FormData = {
   message: string
@@ -121,13 +126,18 @@ const NewConversation = () => {
     [form, setForm]
   )
 
-  const promptEnhancedMessage = useMemo(() => {
-    return !prompt
-      ? form.message
-      : `${prompt.text.replace(`\${INPUT}`, form.message)}`
-  }, [form.message, prompt])
-
   const { message } = form
+
+  const promptEnhancedMessage = useMemo(() => {
+    if (!prompt) {
+      return message
+    }
+    const values = parseInput(message)
+    return replaceVariablesWithValues(prompt.text, values)
+    // return !prompt
+    //   ? form.message
+    //   : `${prompt.text.replace(`\${INPUT}`, form.message)}`
+  }, [message, prompt])
 
   const handleFormSubmit = useCallback(
     async (e: FormEvent<HTMLFormElement>) => {
@@ -148,6 +158,18 @@ const NewConversation = () => {
     },
     [message, promptEnhancedMessage, submitMessage]
   )
+
+  useEffect(() => {
+    if (prompt) {
+      if (message !== '') return
+      const vars = extractVariables(prompt.text)
+      const segments = []
+      for (const v of vars) {
+        segments.push(`${v} = """\n"""`)
+      }
+      setForm(updateField(form, 'message', segments.join('\n')))
+    }
+  }, [form, message, prompt])
 
   return (
     <div
