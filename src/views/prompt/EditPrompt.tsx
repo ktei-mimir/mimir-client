@@ -140,6 +140,7 @@ const EditPrompt = () => {
       let promptSaved: Prompt | undefined = undefined
       if (isEditing) {
         if (!promptId) return
+        if (isUpdating) return
         promptSaved = await updateAsync({
           id: promptId,
           title: form.title,
@@ -153,6 +154,7 @@ const EditPrompt = () => {
           })
         }
       } else {
+        if (isCreating) return
         promptSaved = await createAsync({
           title: form.title,
           text: form.text
