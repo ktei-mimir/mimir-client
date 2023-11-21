@@ -134,29 +134,28 @@ const NewConversation = () => {
     }
     const values = parseInput(message)
     return replaceVariablesWithValues(prompt.text, values)
-    // return !prompt
-    //   ? form.message
-    //   : `${prompt.text.replace(`\${INPUT}`, form.message)}`
   }, [message, prompt])
 
   const handleFormSubmit = useCallback(
     async (e: FormEvent<HTMLFormElement>) => {
       e.preventDefault()
+      if (isBusy) return
       if (!message.trim()) return
       await submitMessage(promptEnhancedMessage)
     },
-    [message, submitMessage, promptEnhancedMessage]
+    [isBusy, message, submitMessage, promptEnhancedMessage]
   )
 
   const handleKeyDown = useCallback(
     async (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
       if (e.key === 'Enter' && e.ctrlKey) {
         e.preventDefault()
+        if (isBusy) return
         if (!message.trim()) return
         await submitMessage(promptEnhancedMessage)
       }
     },
-    [message, promptEnhancedMessage, submitMessage]
+    [isBusy, message, promptEnhancedMessage, submitMessage]
   )
 
   useEffect(() => {
